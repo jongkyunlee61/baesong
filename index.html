@@ -53,6 +53,15 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 .sum .chip{color:var(--fg)}
 .sum .rst{font:inherit;font-size:12.5px;margin-left:auto;padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
 @media (max-width:360px){.cnt{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.pay{display:flex;align-items:center;gap:8px;margin-top:10px}
+.pay span{font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.pay input{font:inherit;font-size:16px;flex:1;min-width:0;box-sizing:border-box;min-height:44px;padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);text-align:right;font-variant-numeric:tabular-nums}
+.pay input.on{border-color:var(--accent);background:var(--chip);font-weight:700}
+.pay em{font-style:normal;font-size:14px;color:var(--muted)}
+.pk{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.pk button{font:inherit;font-size:15px;min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.pk button.on1{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:700}
+.pk button.on2{background:var(--red);border-color:var(--red);color:var(--red-fg);font-weight:700}
 .intro{display:grid;gap:10px;margin-top:10px}
 .intro .hint{margin:0}
 </style>
@@ -147,16 +156,27 @@ function countBlock(d){
     var o = OPTS.replace('value="'+v+'"', 'value="'+v+'" selected');
     h += '<label>'+k+'<select data-name="'+esc(d.n)+'" data-kind="'+k+'" class="'+(v?'on':'')+'" aria-label="'+esc(d.n)+' '+k+' 수량">'+o+'</select></label>';
   });
-  return h + '</div>';
+  h += '</div>';
+  var a = cur._amt ? String(cur._amt).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
+  h += '<div class="pay"><span>결제금액</span><input type="text" inputmode="numeric" class="amt'+(a?' on':'')+'" data-name="'+esc(d.n)+'" value="'+a+'" placeholder="0" aria-label="'+esc(d.n)+' 결제금액"><em>원</em></div>';
+  h += '<div class="pk" role="group" aria-label="수거 여부"><button type="button" data-pk="1" data-name="'+esc(d.n)+'" class="'+(cur._pk===1?'on1':'')+'">수거</button><button type="button" data-pk="2" data-name="'+esc(d.n)+'" class="'+(cur._pk===2?'on2':'')+'">비수거</button></div>';
+  return h;
 }
 
 function renderSum(armed){
-  var tot = {}, any = false;
-  Object.keys(counts).forEach(function(nm){ KINDS.forEach(function(k){ var v = +(counts[nm]||{})[k]||0; if (v){ tot[k]=(tot[k]||0)+v; any = true; } }); });
+  var tot = {}, any = false, amt = 0, p1 = 0, p2 = 0;
+  Object.keys(counts).forEach(function(nm){
+    var c = counts[nm] || {};
+    KINDS.forEach(function(k){ var v = +c[k]||0; if (v){ tot[k]=(tot[k]||0)+v; any = true; } });
+    if (+c._amt) { amt += +c._amt; any = true; }
+    if (c._pk === 1) { p1++; any = true; } else if (c._pk === 2) { p2++; any = true; }
+  });
   var h = '<span>합계</span>';
   if (any) KINDS.forEach(function(k){ if (tot[k]) h += '<span class="chip">'+k+' <b>'+tot[k]+'</b></span>'; });
-  else h += '<span>선택 없음</span>';
-  if (any) h += '<button type="button" class="rst" id="rst">'+(armed?'한 번 더 누르면 초기화':'수량 초기화')+'</button>';
+  if (amt) h += '<span class="chip">결제 <b>'+String(amt).replace(/\B(?=(\d{3})+(?!\d))/g, ",")+'원</b></span>';
+  if (p1 || p2) h += '<span class="chip">수거 <b>'+p1+'</b> · 비수거 <b>'+p2+'</b></span>';
+  if (!any) h += '<span>선택 없음</span>';
+  if (any) h += '<button type="button" class="rst" id="rst">'+(armed?'한 번 더 누르면 초기화':'전체 초기화')+'</button>';
   document.getElementById("sum").innerHTML = h;
 }
 
@@ -215,12 +235,24 @@ function refreshSelects(){
     if (String(s.value) !== String(v)) s.value = String(v);
     s.className = v ? "on" : "";
   }
+  var inp = document.querySelectorAll("input.amt");
+  for (var j = 0; j < inp.length; j++) {
+    var x = inp[j]; if (document.activeElement === x) continue;
+    var a = (counts[x.getAttribute("data-name")] || {})._amt || "";
+    x.value = a ? String(a).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
+    x.className = "amt" + (a ? " on" : "");
+  }
+  var bt = document.querySelectorAll("button[data-pk]");
+  for (var m = 0; m < bt.length; m++) {
+    var b = bt[m], pk = (counts[b.getAttribute("data-name")] || {})._pk || 0, w = +b.getAttribute("data-pk");
+    b.className = pk === w ? "on" + w : "";
+  }
 }
 function applyRemote(){
   var rc = (root && root.counts) || {}, c = {};
   Object.keys(rc).forEach(function(k){
     var nm = NAMES[k]; if (!nm || !rc[k]) return;
-    var o = {}; KINDS.forEach(function(kd){ var n = +rc[k][kd]; if (n) o[kd] = n; });
+    var o = {}; KINDS.concat(['_amt','_pk']).forEach(function(kd){ var n = +rc[k][kd]; if (n) o[kd] = n; });
     if (Object.keys(o).length) c[nm] = o;
   });
   counts = c; save(); refreshSelects(); renderSum(false);
@@ -277,6 +309,25 @@ document.getElementById("app").addEventListener("change", function(ev){
   if (!Object.keys(counts[nm]).length) delete counts[nm];
   s.className = s.value ? "on" : "";
   save(); renderSum(false); push(nm, k, +s.value || 0);
+});
+document.getElementById("app").addEventListener("change", function(ev){
+  var x = ev.target.closest("input.amt"); if (!x) return;
+  var nm = x.getAttribute("data-name"), n = parseInt(x.value.replace(/[^0-9]/g, ""), 10) || 0;
+  counts[nm] = counts[nm] || {};
+  if (n) counts[nm]._amt = n; else delete counts[nm]._amt;
+  if (!Object.keys(counts[nm]).length) delete counts[nm];
+  x.value = n ? String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
+  x.className = "amt" + (n ? " on" : "");
+  save(); renderSum(false); push(nm, "_amt", n);
+});
+document.getElementById("app").addEventListener("click", function(ev){
+  var b = ev.target.closest("button[data-pk]"); if (!b) return;
+  var nm = b.getAttribute("data-name"), w = +b.getAttribute("data-pk");
+  counts[nm] = counts[nm] || {};
+  var nv = counts[nm]._pk === w ? 0 : w;
+  if (nv) counts[nm]._pk = nv; else delete counts[nm]._pk;
+  if (!Object.keys(counts[nm]).length) delete counts[nm];
+  save(); refreshSelects(); renderSum(false); push(nm, "_pk", nv);
 });
 var armed = false, armTimer = null;
 document.getElementById("sum").addEventListener("click", function(ev){
