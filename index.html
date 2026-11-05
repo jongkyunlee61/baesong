@@ -1,0 +1,215 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="푸드홀릭 배송"><meta name="theme-color" content="#0f6e4f"><style>body{margin:0}</style>
+</head><body><title>푸드홀릭 배송[남동•부평]</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 레이아웃: 상단 고정 검색줄 + 지역별 업체 카드 목록(한 손 조작용, 큰 터치 버튼) */
+:root{
+  --bg:#f3f5f2; --surface:#ffffff; --fg:#17211c; --muted:#5b6a63; --line:#dde3de;
+  --accent:#0a6b4d; --accent-fg:#ffffff; --chip:#e8eee9; --note-bg:#fff3d6; --note-fg:#7a4b00; --red:#c62828; --red-fg:#ffffff;
+  --font:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1512; --surface:#18211d; --fg:#e7eee9; --muted:#97a69e; --line:#2a3631;
+  --accent:#4fd6a0; --accent-fg:#052b1d; --chip:#233029; --note-bg:#3a2d0c; --note-fg:#f2cf86; --red:#ff6b6b; --red-fg:#2a0707; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1512; --surface:#18211d; --fg:#e7eee9; --muted:#97a69e; --line:#2a3631;
+  --accent:#4fd6a0; --accent-fg:#052b1d; --chip:#233029; --note-bg:#3a2d0c; --note-fg:#f2cf86; --red:#ff6b6b; --red-fg:#2a0707; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 32px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--bg);padding-block:12px 10px;border-bottom:1px solid var(--line);margin-inline:-4px;padding-inline:4px}
+h1{font-size:19px;margin:0 0 8px;font-weight:700;display:flex;align-items:center;gap:8px}
+.mark{flex:none;width:28px;height:28px;color:var(--accent)}
+h1 small{font-weight:400;font-size:13px;color:var(--muted);margin-left:2px}
+#q{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+#q:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{margin:8px 0 0;font-size:12.5px;color:var(--muted)}
+h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font-weight:700}
+.list{display:grid;gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+.head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.name{font-size:16.5px;font-weight:700;margin:0;min-width:0;overflow-wrap:anywhere}
+.time{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+.chip{font-size:12.5px;background:var(--chip);border-radius:6px;padding:2px 8px;font-variant-numeric:tabular-nums}
+.chip b{font-weight:700}
+.pick{background:var(--accent);color:var(--accent-fg)}
+.addr{margin:10px 0 0;font-size:14px;overflow-wrap:anywhere}
+.note{margin:8px 0 0;font-size:13px;background:var(--note-bg);color:var(--note-fg);border-radius:6px;padding:6px 9px;overflow-wrap:anywhere}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.btn{font:inherit;font-size:15px;font-weight:700;text-decoration:none;border-radius:10px;padding:11px 14px;min-height:44px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.btn.go{flex:1 1 150px;background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.sub{flex:0 1 auto;font-weight:500}
+.none{font-size:13.5px;color:var(--muted)}
+.no{flex:none;align-self:center;min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:13px;background:var(--red);color:var(--red-fg);font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.empty{color:var(--muted);text-align:center;padding:28px 0}
+.cnt-t{margin:14px 0 6px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.cnt{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.cnt label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);min-width:0}
+.cnt select{font:inherit;font-size:16px;width:100%;box-sizing:border-box;min-height:44px;padding:6px 2px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.cnt select.on{border-color:var(--accent);background:var(--chip);font-weight:700;color:var(--fg)}
+.sum{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;font-size:12.5px;color:var(--muted)}
+.sum .chip{color:var(--fg)}
+.sum .rst{font:inherit;font-size:12.5px;margin-left:auto;padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+@media (max-width:360px){.cnt{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.intro{display:grid;gap:10px;margin-top:10px}
+.intro .hint{margin:0}
+</style>
+
+<div class="top">
+  <h1><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M11 8V6.5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2V8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="3.5" y="8" width="25" height="6" rx="2" fill="currentColor"/><rect x="5" y="14" width="22" height="13.5" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 20.7h22" stroke="currentColor" stroke-width="2"/><rect x="14" y="11.5" width="4" height="5" rx="1" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/></svg><span>푸드홀릭 배송[남동•부평]</span><small id="count"></small></h1>
+  <input id="q" type="search" placeholder="업체명·주소 검색" autocomplete="off" aria-label="업체명 또는 주소 검색">
+  <div class="sum" id="sum"></div>
+</div>
+<section class="intro">
+  <p class="hint">「네이버지도 길안내」를 누르면 네이버지도 앱이 열리고 해당 주소가 검색됩니다. 앱에서 「도착」을 누르면 길안내가 시작됩니다.</p>
+</section>
+<main id="app"></main>
+
+<script>
+var APPNAME = "com.insung.delivery";
+var DATA = [
+ {g:"연수구",no:19,n:"삼성내과",pick:"매일 바트수거",day:"매일",pay:"월말결제",a:"연수구 옥련동 462-10 해창빌딩 5층",q:"원흥아파트.옥련시장",note:"안으로 들어가서 왼쪽 간호사님께 물어보세요"},
+ {g:"연수구",n:"헤어254",pay:"월말결제",a:"연수구 옥련로99번길 39, 1층",q:"인천 연수구 옥련로99번길 39"},
+ {g:"연수구",n:"하나태권도",pay:"말일결제",a:"연수구 능허대로79번길 66 2층",q:"인천 연수구 능허대로79번길 66"},
+ {g:"연수구",no:20,n:"동의당약국",day:"매일",pay:"말일결제",a:"연수구 한진로 23",q:"인천 연수구 한진로 23"},
+ {g:"연수구",no:1,n:"한국지오인텍스연구원",pay:"월말결제",a:"연수구 청량로109번길 47",q:"인천 연수구 청량로109번길 47"},
+ {g:"연수구",no:3,n:"연수오케이정형외과 / 장지우",qty:[["스페셜",10]],pick:"다음날 수거, 금요일은 당일수거",day:"매일",pay:"금요일결제",a:"연수구 앵고개로264번길 30-4 4층",q:"인천 연수구 앵고개로264번길 30-4",note:"배송장소: 지하1층(7505*)"},
+ {g:"연수구",no:2,n:"메가커피 인천동춘점",qty:[["일반",3]],pick:"다음날 수거",pay:"사이트결제",a:"연수구 앵고개로264번길 41",q:"인천 연수구 앵고개로264번길 41"},
+ {g:"연수구",n:"드림동물병원",pick:"다음날 수거, 금요일은 당일수거",pay:"사이트결제",a:"연수구 먼우금로 88 105호",q:"인천 연수구 먼우금로 88"},
+ {g:"연수구",no:4,n:"연희동물의료센터 / 김소희",qty:[["일반",11]],pick:"다음날 수거, 금요일은 당일수거",pay:"말일결제",a:"연수구 청능대로 93 이리옴프라자 301-1호 (1040*)",q:"인천 연수구 청능대로 93"},
+ {g:"연수구",no:17,n:"트윈클어학원 6층",pick:"월~목 수거",day:"매일",pay:"월말결제-계좌",a:"연수구 신송로 154 더제니스빌딩 6층 왼쪽",q:"인천 연수구 신송로 154",note:"배송+수거"},
+ {g:"연수구",no:17,n:"트윈클어학원 7층",pick:"월~목 수거",a:"연수구 신송로 154 더제니스빌딩 7층 왼쪽",q:"인천 연수구 신송로 154",note:"배송+수거"},
+ {g:"연수구",no:18,n:"송도키즈스포츠단",pick:"매일수거",a:"연수구 해돋이로 167 힐링프라자 5층 (송도동 22-2)",q:"인천 연수구 해돋이로 167"},
+ {g:"남동구",n:"해오름 아동발달클리닉 / 김태은 (4층)",pick:"다음날 수거, 금요일은 당일수거",pay:"현장결제",a:"남동구 에코중앙로 152 4층",q:"인천 남동구 에코중앙로 152"},
+ {g:"남동구",n:"해오름 아동발달클리닉 / 김태은 (3층)",pick:"다음날 수거, 금요일은 당일수거",day:"매일",pay:"금요일결제",a:"남동구 에코중앙로 152 3층",q:"인천 남동구 에코중앙로 152"},
+ {g:"남동구",no:6,n:"양지온누리약국",qty:[["많이",1],["스페셜","특양 많이"]],pick:"다음날 수거, 금요일은 당일수거",a:"남동구 에코중앙로156번길 5-19",q:"인천 남동구 에코중앙로156번길 5-19"},
+ {g:"남동구",no:5,n:"클린톡스의원",time:"11:30 ~ 11:40",pick:"다음날 수거, 금요일은 당일수거",day:"월·화·수·금",pay:"금요일결제",a:"남동구 논고개로 80 나노프라자 201호 (논현동)",q:"인천 남동구 논고개로 80",note:"주차위치: 버스정류소앞"},
+ {g:"남동구",no:7,n:"도림동 공사현장",time:"11:30",qty:[["많이",9],["스페셜","특양 많이"]],pick:"다음날 수거, 금요일은 당일수거",pay:"말일결제",a:"도림동 222",q:"인천 남동구 도림동 222"},
+ {g:"남동구",no:8,n:"자연놀이학교 루시어린이집",qty:[["일반",2],["스페셜","바트"]],pick:"다음날 수거, 금요일은 당일수거",pay:"말일결제",a:"남동구 오봉동로4번길 32",q:"인천 남동구 오봉동로4번길 32",tel:"010-3762-0406",note:"출입문 비번 6698*"},
+ {g:"남동구",no:9,n:"GDS / 김별이",time:"12:00",pick:"다음날 수거, 금요일은 당일수거",pay:"말일결제",a:"남동구 오봉동로4번길 31",q:"인천 남동구 오봉동로4번길 31"},
+ {g:"남동구",no:10,n:"서창내과",time:"12:00",qty:[["일반",5]],pick:"다음날 수거, 금요일은 당일수거",day:"월·목·금",pay:"말일결제-카드",a:"남동구 매소홀로 1137 2층",q:"인천 남동구 매소홀로 1137"},
+ {g:"남동구",no:11,n:"신세기안경원 (서창내과 건물)",qty:[["일반",2]],day:"월·목·금",pay:"월말결제",a:"남동구 매소홀로 1137 1층",q:"인천 남동구 매소홀로 1137"},
+ {g:"남동구",no:12,n:"청선학교",time:"11:30",qty:[["많이",27]],pick:"매일 수거",pay:"말일결제",a:"남동구 인주대로914번길 16 5층 복도 (엘베 좌측)",q:"인천 남동구 인주대로914번길 16"},
+ {g:"남동구",no:15,n:"더베스트정형외과",qty:[["일반",9],["많이",9]],pick:"수거",pay:"월말결제",a:"남동구 호구포로 804 예담더스타 2층",q:"인천 남동구 호구포로 804",note:"9월 28일부터 시작"},
+ {g:"남동구",n:"청십자약국",pay:"월말결제",a:"남동구 호구포로 804 예담더스타 1층",q:"인천 남동구 호구포로 804"},
+ {g:"남동구",no:13,n:"족발집",time:"2:00 ~ 4:00",pick:"수거",pay:"말일결제",a:"남동구 구월동 1239-18 1층",q:"인천 남동구 구월동 1239-18",note:"수거할 때 배송 · 반찬 보온가방 배송(3인분)"},
+ {g:"남동구",no:14,n:"지원",qty:[["스페셜",4]],pick:"수거",pay:"말일결제-계좌",a:"구월남로 260번길 20 1층",q:"인천 남동구 구월남로260번길 20"},
+ {g:"남동구",no:16,n:"slp 어학원",time:"12:20",qty:[["일반","바트1, 국통1"]],pick:"수거",pay:"말일-카드",a:"남동구 용천로 87 3층 서강slp어학원",q:"인천 남동구 용천로 87 103호"},
+ {g:"기타",n:"기사님 식사",a:""}
+];
+
+var ua = navigator.userAgent || "";
+var isAndroid = /Android/i.test(ua);
+function appLink(q){
+  var e = encodeURIComponent(q);
+  if (isAndroid) return "intent://search?query=" + e + "&appname=" + APPNAME +
+    "#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;end";
+  return "nmap://search?query=" + e + "&appname=" + APPNAME;
+}
+function webLink(q){ return "https://map.naver.com/p/search/" + encodeURIComponent(q); }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+
+var KINDS = ["일반","양많이","스페셜","샐러드","바트"];
+var LABEL = {"많이":"양많이","밑반/샐러드":"샐러드"};
+var STORE = "baesong-counts-v1";
+var counts = {};
+try { counts = JSON.parse(localStorage.getItem(STORE) || "{}") || {}; } catch(e) { counts = {}; }
+var SEED_KEY = "baesong-seed-20261105";
+var SEED = {
+ "연수오케이정형외과 / 장지우":{"스페셜":10},
+ "메가커피 인천동춘점":{"일반":3},
+ "연희동물의료센터 / 김소희":{"일반":11},
+ "양지온누리약국":{"양많이":1},
+ "도림동 공사현장":{"양많이":9},
+ "자연놀이학교 루시어린이집":{"일반":2},
+ "서창내과":{"일반":5},
+ "신세기안경원 (서창내과 건물)":{"일반":2},
+ "청선학교":{"양많이":27},
+ "더베스트정형외과":{"일반":9,"양많이":9},
+ "지원":{"스페셜":4},
+ "slp 어학원":{"바트":1},
+ "기사님 식사":{"일반":1}
+};
+try { if (!localStorage.getItem(SEED_KEY)) { counts = {}; Object.keys(SEED).forEach(function(nm){ counts[nm] = JSON.parse(JSON.stringify(SEED[nm])); }); localStorage.setItem(SEED_KEY,"1"); localStorage.setItem(STORE, JSON.stringify(counts)); } } catch(e) { if (!Object.keys(counts).length) counts = JSON.parse(JSON.stringify(SEED)); }
+function save(){ try { localStorage.setItem(STORE, JSON.stringify(counts)); } catch(e) {} }
+var OPTS = '<option value="">-</option>';
+for (var n = 1; n <= 50; n++) OPTS += '<option value="'+n+'">'+n+'</option>';
+
+function countBlock(d){
+  var cur = counts[d.n] || {};
+  var h = '<p class="cnt-t">배송 수량</p><div class="cnt">';
+  KINDS.forEach(function(k){
+    var v = cur[k] || "";
+    var o = OPTS.replace('value="'+v+'"', 'value="'+v+'" selected');
+    h += '<label>'+k+'<select data-name="'+esc(d.n)+'" data-kind="'+k+'" class="'+(v?'on':'')+'" aria-label="'+esc(d.n)+' '+k+' 수량">'+o+'</select></label>';
+  });
+  return h + '</div>';
+}
+
+function renderSum(armed){
+  var tot = {}, any = false;
+  Object.keys(counts).forEach(function(nm){ KINDS.forEach(function(k){ var v = +(counts[nm]||{})[k]||0; if (v){ tot[k]=(tot[k]||0)+v; any = true; } }); });
+  var h = '<span>합계</span>';
+  if (any) KINDS.forEach(function(k){ if (tot[k]) h += '<span class="chip">'+k+' <b>'+tot[k]+'</b></span>'; });
+  else h += '<span>선택 없음</span>';
+  if (any) h += '<button type="button" class="rst" id="rst">'+(armed?'한 번 더 누르면 초기화':'수량 초기화')+'</button>';
+  document.getElementById("sum").innerHTML = h;
+}
+
+function card(d){
+  var h = '<article class="card"><div class="head">'+(d.no?'<span class="no" aria-label="번호 '+d.no+'">'+d.no+'</span>':'')+'<h3 class="name">'+esc(d.n)+'</h3>'+(d.time?'<span class="time">'+esc(d.time)+'</span>':'')+'</div>';
+  var chips = [];
+  (d.qty||[]).forEach(function(x){ chips.push('<span class="chip">'+esc(LABEL[x[0]]||x[0])+' <b>'+esc(x[1])+'</b></span>'); });
+  if (d.pick) chips.push('<span class="chip pick">'+esc(d.pick)+'</span>');
+  if (d.day) chips.push('<span class="chip">주문 '+esc(d.day)+'</span>');
+  if (d.pay) chips.push('<span class="chip">'+esc(d.pay)+'</span>');
+  if (chips.length) h += '<div class="meta">'+chips.join("")+'</div>';
+  h += '<p class="addr">'+esc(d.a)+'</p>';
+  if (d.note) h += '<p class="note">'+esc(d.note)+'</p>';
+  if (d.tel) h += '<p class="addr">전화 '+esc(d.tel)+'</p>';
+  h += countBlock(d);
+  if (d.q) {
+    h += '<div class="acts"><a class="btn go" href="'+esc(appLink(d.q))+'">네이버지도 길안내</a>'+
+         '<a class="btn sub" href="'+esc(webLink(d.q))+'" target="_blank" rel="noopener">웹지도</a></div>';
+  } else {
+    h += '<p class="none">길안내 없음</p>';
+  }
+  return h + '</article>';
+}
+
+function render(){
+  var term = document.getElementById("q").value.trim().toLowerCase();
+  var rows = DATA.filter(function(d){ return !term || (d.n+" "+d.a).toLowerCase().indexOf(term) >= 0; });
+  document.getElementById("count").textContent = rows.length + "곳";
+  var out = "";
+  var routed = rows.filter(function(d){return d.no;}).sort(function(a,b){return a.no-b.no || DATA.indexOf(a)-DATA.indexOf(b);});
+  var rest = rows.filter(function(d){return !d.no;});
+  [["오늘 배송 순서", routed], ["오늘 순서에 없는 곳", rest]].forEach(function(sec){
+    if (!sec[1].length) return;
+    out += '<h2>'+sec[0]+' · '+sec[1].length+'곳</h2><div class="list">'+sec[1].map(card).join("")+'</div>';
+  });
+  document.getElementById("app").innerHTML = out || '<p class="empty">검색 결과가 없습니다.</p>';
+  renderSum(false);
+}
+
+document.getElementById("q").addEventListener("input", render);
+document.getElementById("app").addEventListener("change", function(ev){
+  var s = ev.target.closest("select[data-kind]"); if (!s) return;
+  var nm = s.getAttribute("data-name"), k = s.getAttribute("data-kind");
+  counts[nm] = counts[nm] || {};
+  if (s.value) counts[nm][k] = +s.value; else delete counts[nm][k];
+  if (!Object.keys(counts[nm]).length) delete counts[nm];
+  s.className = s.value ? "on" : "";
+  save(); renderSum(false);
+});
+var armed = false, armTimer = null;
+document.getElementById("sum").addEventListener("click", function(ev){
+  if (!ev.target.closest("#rst")) return;
+  if (!armed) { armed = true; renderSum(true); armTimer = setTimeout(function(){ armed = false; renderSum(false); }, 3000); return; }
+  clearTimeout(armTimer); armed = false; counts = {}; save(); render();
+});
+render();
+</script>
+</body></html>
