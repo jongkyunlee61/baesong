@@ -62,6 +62,10 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 .pk button{font:inherit;font-size:15px;min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
 .pk button.on1{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:700}
 .pk button.on2{background:var(--red);border-color:var(--red);color:var(--red-fg);font-weight:700}
+.navsel{display:flex;align-items:center;gap:8px;margin:10px 16px 0}
+.navsel span{font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.navsel button{font:inherit;font-size:15px;flex:1;min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.navsel button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:700}
 .intro{display:grid;gap:10px;margin-top:10px}
 .intro .hint{margin:0}
 </style>
@@ -72,8 +76,9 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
   <div class="sum" id="sum"></div>
 </div>
 <section class="intro">
-  <p class="hint">「네이버지도 길안내」를 누르면 네이버지도 앱이 열리고 해당 주소가 검색됩니다. 앱에서 「도착」을 누르면 길안내가 시작됩니다.</p>
+  <p class="hint">아래에서 지도 앱을 고른 뒤 「길안내」를 누르면 그 앱이 열리고 해당 주소가 검색됩니다. 앱에서 「도착」을 누르면 길안내가 시작됩니다.</p>
 </section>
+<div class="navsel" id="navsel" role="group" aria-label="지도 앱 선택"><span>길안내 앱</span><button type="button" data-nav="naver">네이버지도</button><button type="button" data-nav="kakao">카카오맵</button></div>
 <main id="app"></main>
 
 <script>
@@ -111,13 +116,23 @@ var DATA = [
 
 var ua = navigator.userAgent || "";
 var isAndroid = /Android/i.test(ua);
+var NAVKEY = "baesong-nav";
+var NAVS = { naver: "네이버지도", kakao: "카카오맵" };
+var nav = "naver";
+try { var sv = localStorage.getItem(NAVKEY); if (sv && NAVS[sv]) nav = sv; } catch(e) {}
 function appLink(q){
   var e = encodeURIComponent(q);
+  if (nav === "kakao") {
+    if (isAndroid) return "intent://search?q=" + e + "#Intent;scheme=kakaomap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=net.daum.android.map;end";
+    return "kakaomap://search?q=" + e;
+  }
   if (isAndroid) return "intent://search?query=" + e + "&appname=" + APPNAME +
     "#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;end";
   return "nmap://search?query=" + e + "&appname=" + APPNAME;
 }
-function webLink(q){ return "https://map.naver.com/p/search/" + encodeURIComponent(q); }
+function webLink(q){
+  return nav === "kakao" ? "https://map.kakao.com/link/search/" + encodeURIComponent(q) : "https://map.naver.com/p/search/" + encodeURIComponent(q);
+}
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
 
 var KINDS = ["일반","양많이","스페셜","샐러드","바트"];
@@ -197,7 +212,7 @@ function card(d){
   if (d.tel) h += '<p class="addr">전화 '+esc(d.tel)+'</p>';
   h += countBlock(d);
   if (d.q) {
-    h += '<div class="acts"><a class="btn go" href="'+esc(appLink(d.q))+'">네이버지도 길안내</a>'+
+    h += '<div class="acts"><a class="btn go" href="'+esc(appLink(d.q))+'">'+NAVS[nav]+' 길안내</a>'+
          '<a class="btn sub" href="'+esc(webLink(d.q))+'" target="_blank" rel="noopener">웹지도</a></div>';
   } else {
     h += '<p class="none">길안내 없음</p>';
@@ -339,6 +354,13 @@ document.getElementById("sum").addEventListener("click", function(ev){
   if (!armed) { armed = true; renderSum(true); armTimer = setTimeout(function(){ armed = false; renderSum(false); }, 3000); return; }
   clearTimeout(armTimer); armed = false; counts = {}; save(); render(); fetch(BASE + "/counts.json", { method: "DELETE" }).catch(function(){});
 });
+function paintNav(){ var b = document.querySelectorAll("#navsel button"); for (var i = 0; i < b.length; i++) b[i].className = b[i].getAttribute("data-nav") === nav ? "on" : ""; }
+document.getElementById("navsel").addEventListener("click", function(ev){
+  var b = ev.target.closest("button[data-nav]"); if (!b) return;
+  nav = b.getAttribute("data-nav"); try { localStorage.setItem(NAVKEY, nav); } catch(e) {}
+  paintNav(); render();
+});
+paintNav();
 render();
 startSync();
 </script>
