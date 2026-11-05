@@ -53,7 +53,7 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 .sum .chip{color:var(--fg)}
 .sum .rst{font:inherit;font-size:12.5px;margin-left:auto;padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
 @media (max-width:360px){.cnt{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.pay{display:flex;align-items:center;gap:8px;margin-top:10px}
+.pay{display:flex;align-items:center;gap:8px;margin:10px 0 2px}
 .pay span{font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap}
 .pay input{font:inherit;font-size:16px;flex:1;min-width:0;box-sizing:border-box;min-height:44px;padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);text-align:right;font-variant-numeric:tabular-nums}
 .pay input.on{border-color:var(--accent);background:var(--chip);font-weight:700}
@@ -148,6 +148,13 @@ function save(){ try { localStorage.setItem(STORE, JSON.stringify(counts)); } ca
 var OPTS = '<option value="">-</option>';
 for (var n = 1; n <= 50; n++) OPTS += '<option value="'+n+'">'+n+'</option>';
 
+function payBlock(d){
+  var cur = counts[d.n] || {};
+  var a = cur._amt ? String(cur._amt).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
+  var h = '<div class="pay"><span>결제금액</span><input type="text" inputmode="numeric" class="amt'+(a?' on':'')+'" data-name="'+esc(d.n)+'" value="'+a+'" placeholder="0" aria-label="'+esc(d.n)+' 결제금액"><em>원</em></div>';
+  return h;
+}
+
 function countBlock(d){
   var cur = counts[d.n] || {};
   var h = '<p class="cnt-t">배송 수량</p><div class="cnt">';
@@ -157,8 +164,6 @@ function countBlock(d){
     h += '<label>'+k+'<select data-name="'+esc(d.n)+'" data-kind="'+k+'" class="'+(v?'on':'')+'" aria-label="'+esc(d.n)+' '+k+' 수량">'+o+'</select></label>';
   });
   h += '</div>';
-  var a = cur._amt ? String(cur._amt).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
-  h += '<div class="pay"><span>결제금액</span><input type="text" inputmode="numeric" class="amt'+(a?' on':'')+'" data-name="'+esc(d.n)+'" value="'+a+'" placeholder="0" aria-label="'+esc(d.n)+' 결제금액"><em>원</em></div>';
   h += '<div class="pk" role="group" aria-label="수거 여부"><button type="button" data-pk="1" data-name="'+esc(d.n)+'" class="'+(cur._pk===1?'on1':'')+'">수거</button><button type="button" data-pk="2" data-name="'+esc(d.n)+'" class="'+(cur._pk===2?'on2':'')+'">비수거</button></div>';
   return h;
 }
@@ -181,9 +186,8 @@ function renderSum(armed){
 }
 
 function card(d){
-  var h = '<article class="card"><div class="head">'+(d.no?'<span class="no" aria-label="번호 '+d.no+'">'+d.no+'</span>':'')+'<h3 class="name">'+esc(d.n)+'</h3>'+(d.time?'<span class="time">'+esc(d.time)+'</span>':'')+'</div>';
+  var h = '<article class="card"><div class="head">'+(d.no?'<span class="no" aria-label="번호 '+d.no+'">'+d.no+'</span>':'')+'<h3 class="name">'+esc(d.n)+'</h3>'+(d.time?'<span class="time">'+esc(d.time)+'</span>':'')+'</div>' + payBlock(d);
   var chips = [];
-  (d.qty||[]).forEach(function(x){ chips.push('<span class="chip">'+esc(LABEL[x[0]]||x[0])+' <b>'+esc(x[1])+'</b></span>'); });
   if (d.pick) chips.push('<span class="chip pick">'+esc(d.pick)+'</span>');
   if (d.day) chips.push('<span class="chip">주문 '+esc(d.day)+'</span>');
   if (d.pay) chips.push('<span class="chip">'+esc(d.pay)+'</span>');
