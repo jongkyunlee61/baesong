@@ -408,6 +408,7 @@ function showScan(j){
   var sum = {}; KINDS.forEach(function(k){ sum[k] = 0; });
   var li = rows.map(function(x){
     var parts = []; KINDS.forEach(function(k){ var n = +x[k] || 0; if (n) { parts.push(k + " " + n); sum[k] += n; } });
+    var am = Math.round(+x["금액"] || 0); if (am > 0) parts.push("결제 " + String(am).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "원");
     return '<li><span>'+esc(x.name)+'</span><b>'+(parts.join(" · ") || "-")+'</b></li>';
   });
   var h = '<h3>읽은 수량을 확인하세요</h3>';
@@ -420,14 +421,17 @@ function showScan(j){
   h += '<p class="okm">합계 ' + KINDS.filter(function(k){ return sum[k]; }).map(function(k){ return k + " " + sum[k]; }).join(" · ") + '</p>';
   if (j.totals && !warns.some(function(w){ return w.indexOf("표 합계") >= 0; })) h += '<p class="okm">표 맨 아래 합계와 일치합니다 ✓</p>';
   warns.forEach(function(w){ h += '<p class="warn">⚠ ' + esc(w) + '</p>'; });
-  h += '<p style="font-size:12.5px;color:var(--muted)">「적용」을 누르면 지금의 수량이 이 값으로 바뀝니다. (결제금액, 결제완료, 수거 표시는 그대로)</p>';
+  h += '<p style="font-size:12.5px;color:var(--muted)">「적용」을 누르면 지금의 수량이 이 값으로 바뀝니다. (결제완료와 수거 표시는 그대로이고, 표에서 읽은 결제금액은 해당 업체에 입력됩니다)</p>';
   scanResult = rows; ovlShow(h, true);
 }
 function applyScan(){
   if (!scanResult) return;
   var next = {};
   Object.keys(counts).forEach(function(nm){ var c = counts[nm]; var o = {}; if (c._amt) o._amt = c._amt; if (c._pk) o._pk = c._pk; if (c._paid) o._paid = c._paid; if (Object.keys(o).length) next[nm] = o; });
-  scanResult.forEach(function(x){ KINDS.forEach(function(k){ var n = Math.round(+x[k] || 0); if (n > 0 && n <= 50) { next[x.name] = next[x.name] || {}; next[x.name][k] = n; } }); });
+  scanResult.forEach(function(x){
+    KINDS.forEach(function(k){ var n = Math.round(+x[k] || 0); if (n > 0 && n <= 50) { next[x.name] = next[x.name] || {}; next[x.name][k] = n; } });
+    var am = Math.round(+x["금액"] || 0); if (am > 0 && am < 100000000) { next[x.name] = next[x.name] || {}; next[x.name]._amt = am; }
+  });
   counts = next; save(); refreshSelects(); renderSum(false);
   var enc = {}; Object.keys(counts).forEach(function(nm){ enc[ek(nm)] = counts[nm]; });
   fetch(BASE + "/counts.json", { method: "PUT", body: JSON.stringify(enc) }).catch(function(){ setSync(false, "저장 실패 · 연결을 확인하세요"); });
