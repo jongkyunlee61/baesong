@@ -191,10 +191,17 @@ function save(){ try { localStorage.setItem(STORE, JSON.stringify(counts)); } ca
 var OPTS = '<option value="">-</option>';
 for (var n = 1; n <= 50; n++) OPTS += '<option value="'+n+'">'+n+'</option>';
 
+function actBlock(d){
+  var kk = K(d.n), cur = counts[kk] || {}, h = '';
+  h += '<div class="memo"><span>미결재/비고</span><input type="text" class="memoin'+(cur._memo?' on':'')+'" data-name="'+esc(kk)+'" value="'+esc(cur._memo||'')+'" placeholder="직접 입력" maxlength="200" aria-label="'+esc(d.n)+' 미결재/비고"></div>';
+  h += '<div class="pk" role="group" aria-label="배송·수거 여부"><button type="button" data-dl="1" data-name="'+esc(kk)+'" class="'+(cur._dl?'ondl':'')+'" aria-pressed="'+(cur._dl?'true':'false')+'">배송완료</button><button type="button" data-pk="1" data-name="'+esc(kk)+'" class="'+(cur._pk===1?'on1':'')+'">수거완료</button><button type="button" data-pk="2" data-name="'+esc(kk)+'" class="'+(cur._pk===2?'on2':'')+'">미수거</button></div>';
+  return h;
+}
 function payBlock(d){
   var kk = K(d.n), cur = counts[kk] || {};
   var a = cur._amt ? String(cur._amt).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
   var h = '<div class="pay"><span>결제금액</span><input type="text" inputmode="numeric" class="amt'+(a?' on':'')+'" data-name="'+esc(kk)+'" value="'+a+'" placeholder="0" aria-label="'+esc(d.n)+' 결제금액"><em>원</em><button type="button" class="paid'+(cur._paid?' on':'')+'" data-paid="1" data-name="'+esc(kk)+'" aria-pressed="'+(cur._paid?'true':'false')+'">결제완료</button></div>';
+  h += actBlock(d);
   return h;
 }
 
@@ -207,8 +214,6 @@ function countBlock(d){
     h += '<label>'+k+'<select data-name="'+esc(kk)+'" data-kind="'+k+'" class="'+(v?'on':'')+'" aria-label="'+esc(d.n)+' '+k+' 수량">'+o+'</select></label>';
   });
   h += '</div>';
-  h += '<div class="memo"><span>미결재/비고</span><input type="text" class="memoin'+(cur._memo?' on':'')+'" data-name="'+esc(kk)+'" value="'+esc(cur._memo||'')+'" placeholder="직접 입력" maxlength="200" aria-label="'+esc(d.n)+' 미결재/비고"></div>';
-  h += '<div class="pk" role="group" aria-label="배송·수거 여부"><button type="button" data-dl="1" data-name="'+esc(kk)+'" class="'+(cur._dl?'ondl':'')+'" aria-pressed="'+(cur._dl?'true':'false')+'">배송완료</button><button type="button" data-pk="1" data-name="'+esc(kk)+'" class="'+(cur._pk===1?'on1':'')+'">수거완료</button><button type="button" data-pk="2" data-name="'+esc(kk)+'" class="'+(cur._pk===2?'on2':'')+'">미수거</button></div>';
   return h;
 }
 
