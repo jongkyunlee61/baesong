@@ -80,6 +80,11 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 .ovl li b{font-variant-numeric:tabular-nums;text-align:right}
 .ovl .warn{background:var(--note-bg);color:var(--note-fg);border-radius:8px;padding:8px 10px;font-size:13px;margin:8px 0}
 .ovl .okm{color:var(--accent);font-size:13px;margin:8px 0;font-weight:700}
+.hbar{margin:8px 16px 0}.hbar button{font:inherit;font-size:14px;width:100%;min-height:42px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.ovl-acts.one{grid-template-columns:1fr}.ovl-acts.one button[hidden]{display:none}
+.hd{display:flex;justify-content:space-between;align-items:center;width:100%;font:inherit;font-size:15px;min-height:46px;padding:0 12px;margin:6px 0;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.hd b{font-variant-numeric:tabular-nums}
+.ovl li small{color:var(--muted);display:block;font-size:12px}
 .ovl-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .ovl-acts button{font:inherit;font-size:15px;min-height:46px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
 .ovl-acts .go2{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:700}
@@ -98,6 +103,8 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 <div class="tabs" id="tabs" role="tablist" aria-label="배송 루트"></div>
 <div class="scan"><button type="button" id="scanBtn">📷 카메라로 촬영</button><button type="button" id="scanAlbum">🖼 앨범에서 선택</button><input type="file" id="scanFile" accept="image/*" capture="environment" hidden><input type="file" id="scanFileAlbum" accept="image/*" hidden></div>
 <div class="ovl" id="ovl" hidden><div class="box" role="dialog" aria-modal="true" aria-label="읽은 수량 확인"><div id="ovlBody"></div><div class="ovl-acts"><button type="button" id="ovlNo">취소</button><button type="button" id="ovlYes" class="go2">적용</button></div></div></div>
+<div class="hbar"><button type="button" id="histBtn">📅 지난 기록 보기</button></div>
+<div class="ovl" id="hist" hidden><div class="box" role="dialog" aria-modal="true" aria-label="지난 기록"><div id="histBody"></div><div class="ovl-acts one"><button type="button" id="histBack" hidden>← 날짜 목록</button><button type="button" id="histClose" class="go2">닫기</button></div></div></div>
 <main id="app"></main>
 
 <script>
@@ -512,6 +519,42 @@ document.getElementById("tabs").addEventListener("click", function(ev){
   ROUTE = +b.getAttribute("data-route"); try { localStorage.setItem(ROUTEKEY, String(ROUTE)); } catch(e) {}
   paintRoute(); render(); window.scrollTo(0, 0);
 });
+
+/* ---- 지난 기록 (날짜별 수량·결제금액 조회) ---- */
+var histEl = document.getElementById("hist"), histBody = document.getElementById("histBody"), histBack = document.getElementById("histBack");
+function dFmt(k){ var w = ["일","월","화","수","목","금","토"][new Date(+k.slice(0,4), +k.slice(4,6)-1, +k.slice(6,8)).getDay()]; return k.slice(0,4)+"."+k.slice(4,6)+"."+k.slice(6,8)+" ("+w+")"; }
+function won(n){ return Number(n||0).toLocaleString("ko-KR")+"원"; }
+function histList(){
+  histBack.hidden = true; histBody.innerHTML = "<h3>지난 기록</h3><p>불러오는 중…</p>";
+  fetch(DB + "/baesong.json?shallow=true").then(function(r){ return r.json(); }).then(function(o){
+    var days = Object.keys(o || {}).filter(function(k){ return /^\d{8}$/.test(k); }).sort().reverse();
+    if (!days.length) { histBody.innerHTML = "<h3>지난 기록</h3><p>저장된 기록이 아직 없습니다.</p>"; return; }
+    histBody.innerHTML = "<h3>지난 기록</h3>" + days.map(function(k){ return '<button type="button" class="hd" data-day="'+k+'"><span>'+dFmt(k)+(k===DAY?' · 오늘':'')+'</span><b>›</b></button>'; }).join("");
+  }).catch(function(){ histBody.innerHTML = "<h3>지난 기록</h3><p>불러오지 못했습니다. 인터넷 연결을 확인하세요.</p>"; });
+}
+function histDay(k){
+  histBack.hidden = false; histBody.innerHTML = "<h3>"+dFmt(k)+"</h3><p>불러오는 중…</p>";
+  fetch(DB + "/baesong/" + k + "/counts.json").then(function(r){ return r.json(); }).then(function(c){
+    c = c || {};
+    var tot = {}, amt = 0, paid = 0, rows = "", n = 0;
+    DATA.forEach(function(d){
+      var v = c[ek(d.n)]; if (!v) return;
+      var q = [], has = false;
+      KINDS.forEach(function(kd){ var x = +v[kd] || 0; if (x) { has = true; q.push(kd+" "+x); tot[kd] = (tot[kd]||0) + x; } });
+      var a = +v._amt || 0; if (a) { has = true; amt += a; if (v._paid) paid += a; }
+      if (!has && !v._pk && !v._dl) return;
+      n++;
+      var st = []; if (v._dl) st.push("배송완료"); if (v._paid) st.push("결제완료"); if (v._pk === 1) st.push("수거완료"); if (v._pk === 2) st.push("미수거");
+      rows += "<li><span>"+esc(d.n)+"<small>"+(q.join(" · ")||"수량 없음")+(st.length?" · "+st.join(" · "):"")+"</small></span><b>"+(a?won(a):"")+"</b></li>";
+    });
+    var ts = KINDS.filter(function(kd){ return tot[kd]; }).map(function(kd){ return kd+" "+tot[kd]; }).join(" · ") || "수량 없음";
+    histBody.innerHTML = "<h3>"+dFmt(k)+"</h3><div class='okm'>"+n+"곳 · "+esc(ts)+"</div><div class='okm'>결제금액 합계 "+won(amt)+" (결제완료 "+won(paid)+")</div><ul>"+(rows||"<li>이 날짜에 입력된 내용이 없습니다.</li>")+"</ul>";
+  }).catch(function(){ histBody.innerHTML = "<h3>"+dFmt(k)+"</h3><p>불러오지 못했습니다.</p>"; });
+}
+document.getElementById("histBtn").addEventListener("click", function(){ histEl.hidden = false; histList(); });
+document.getElementById("histClose").addEventListener("click", function(){ histEl.hidden = true; });
+histBack.addEventListener("click", histList);
+histEl.addEventListener("click", function(ev){ if (ev.target === histEl) histEl.hidden = true; var b = ev.target.closest("button[data-day]"); if (b) histDay(b.getAttribute("data-day")); });
 paintRoute();
 render();
 startSync();
