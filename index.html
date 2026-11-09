@@ -571,8 +571,8 @@ function paintRoute(){
   var h = "";
   ROUTES.forEach(function(r){ h += '<button type="button" role="tab" data-route="'+r.id+'" class="'+(r.id===ROUTE?'on':'')+'" aria-selected="'+(r.id===ROUTE?'true':'false')+'">루트 '+r.id+' · '+r.name+'</button>'; });
   document.getElementById("tabs").innerHTML = h;
-  var sp = document.querySelector("h1 span"); if (sp) sp.textContent = ROUTE === 2 ? "푸드홀릭 배송" : "푸드홀릭 배송[" + routeName() + "]";
-  document.title = ROUTE === 2 ? "푸드홀릭 배송" : "푸드홀릭 배송[" + routeName() + "]";
+  var sp = document.querySelector("h1 span"); if (sp) sp.textContent = "푸드홀릭 배송[" + routeName() + "]";
+  document.title = "푸드홀릭 배송[" + routeName() + "]";
 }
 document.getElementById("tabs").addEventListener("click", function(ev){
   var b = ev.target.closest("button[data-route]"); if (!b) return;
