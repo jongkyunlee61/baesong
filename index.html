@@ -174,36 +174,43 @@ var counts = {};
 try { counts = JSON.parse(localStorage.getItem(STORE) || "{}") || {}; } catch(e) { counts = {}; }
 var SEED = {};
 var FILLS = [{ id: "20261109-r2", day: "20261109", data: {
-  "트윈클어학원 6층": { "일반": 6 }, "트윈클어학원 7층": { "일반": 4 }, "자윤한의원": { "일반": 2, "_amt": 272000 },
-  "송도키즈스포츠단": { "일반": 8, "바트": 6 }, "와이오토컴퍼니": { "샐러드": 5 }, "조남철강": { "양많이": 5 },
-  "태성물류": { "양많이": 8 }, "기사님 수거": { "양많이": 1 }, "헤어254": { "_amt": 170000 }, "동의당약국": { "_amt": 340000 }
+  "자윤한의원": { "일반": 2, "_amt": 272000 },
+  "와이오토컴퍼니": { "샐러드": 5 }, "조남철강": { "양많이": 5 },
+  "태성물류": { "양많이": 8 }, "기사님 수거": { "양많이": 1 }, "헤어254": { "_amt": 170000 }
+} }, { id: "20261109-r2b", day: "20261109", clear: true, data: {
+  "트윈클어학원 6층~2": { "일반": 6 }, "트윈클어학원 7층~2": { "일반": 4 },
+  "송도키즈스포츠단~2": { "일반": 8, "바트": 6 }, "동의당약국~2": { "_amt": 340000 }
 } }];
+/* 겹치는 업체는 루트별로 따로 저장: 루트 2에서는 이름 뒤에 ~2 를 붙여 별도 칸으로 */
+function isShared(d){ return d.no != null && d.r2 != null && !d.only2; }
+function K(nm, r){ r = r || ROUTE; var d = BYNAME[nm]; return (r === 2 && d && isShared(d)) ? nm + "~2" : nm; }
+var BYNAME = {}; DATA.forEach(function(d){ BYNAME[d.n] = d; });
 function save(){ try { localStorage.setItem(STORE, JSON.stringify(counts)); } catch(e) {} }
 var OPTS = '<option value="">-</option>';
 for (var n = 1; n <= 50; n++) OPTS += '<option value="'+n+'">'+n+'</option>';
 
 function payBlock(d){
-  var cur = counts[d.n] || {};
+  var kk = K(d.n), cur = counts[kk] || {};
   var a = cur._amt ? String(cur._amt).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
-  var h = '<div class="pay"><span>결제금액</span><input type="text" inputmode="numeric" class="amt'+(a?' on':'')+'" data-name="'+esc(d.n)+'" value="'+a+'" placeholder="0" aria-label="'+esc(d.n)+' 결제금액"><em>원</em><button type="button" class="paid'+(cur._paid?' on':'')+'" data-paid="1" data-name="'+esc(d.n)+'" aria-pressed="'+(cur._paid?'true':'false')+'">결제완료</button></div>';
+  var h = '<div class="pay"><span>결제금액</span><input type="text" inputmode="numeric" class="amt'+(a?' on':'')+'" data-name="'+esc(kk)+'" value="'+a+'" placeholder="0" aria-label="'+esc(d.n)+' 결제금액"><em>원</em><button type="button" class="paid'+(cur._paid?' on':'')+'" data-paid="1" data-name="'+esc(kk)+'" aria-pressed="'+(cur._paid?'true':'false')+'">결제완료</button></div>';
   return h;
 }
 
 function countBlock(d){
-  var cur = counts[d.n] || {};
+  var kk = K(d.n), cur = counts[kk] || {};
   var h = '<p class="cnt-t">배송 수량</p><div class="cnt">';
   ALLK.forEach(function(k){
     var v = cur[k] || "";
     var o = OPTS.replace('value="'+v+'"', 'value="'+v+'" selected');
-    h += '<label>'+k+'<select data-name="'+esc(d.n)+'" data-kind="'+k+'" class="'+(v?'on':'')+'" aria-label="'+esc(d.n)+' '+k+' 수량">'+o+'</select></label>';
+    h += '<label>'+k+'<select data-name="'+esc(kk)+'" data-kind="'+k+'" class="'+(v?'on':'')+'" aria-label="'+esc(d.n)+' '+k+' 수량">'+o+'</select></label>';
   });
   h += '</div>';
-  h += '<div class="memo"><span>미결재/비고</span><input type="text" class="memoin'+(cur._memo?' on':'')+'" data-name="'+esc(d.n)+'" value="'+esc(cur._memo||'')+'" placeholder="직접 입력" maxlength="200" aria-label="'+esc(d.n)+' 미결재/비고"></div>';
-  h += '<div class="pk" role="group" aria-label="배송·수거 여부"><button type="button" data-dl="1" data-name="'+esc(d.n)+'" class="'+(cur._dl?'ondl':'')+'" aria-pressed="'+(cur._dl?'true':'false')+'">배송완료</button><button type="button" data-pk="1" data-name="'+esc(d.n)+'" class="'+(cur._pk===1?'on1':'')+'">수거완료</button><button type="button" data-pk="2" data-name="'+esc(d.n)+'" class="'+(cur._pk===2?'on2':'')+'">미수거</button></div>';
+  h += '<div class="memo"><span>미결재/비고</span><input type="text" class="memoin'+(cur._memo?' on':'')+'" data-name="'+esc(kk)+'" value="'+esc(cur._memo||'')+'" placeholder="직접 입력" maxlength="200" aria-label="'+esc(d.n)+' 미결재/비고"></div>';
+  h += '<div class="pk" role="group" aria-label="배송·수거 여부"><button type="button" data-dl="1" data-name="'+esc(kk)+'" class="'+(cur._dl?'ondl':'')+'" aria-pressed="'+(cur._dl?'true':'false')+'">배송완료</button><button type="button" data-pk="1" data-name="'+esc(kk)+'" class="'+(cur._pk===1?'on1':'')+'">수거완료</button><button type="button" data-pk="2" data-name="'+esc(kk)+'" class="'+(cur._pk===2?'on2':'')+'">미수거</button></div>';
   return h;
 }
 
-function routeNames(){ return DATA.filter(function(d){ return inRoute(d); }).map(function(d){ return d.n; }); }
+function routeNames(){ return DATA.filter(function(d){ return inRoute(d); }).map(function(d){ return K(d.n); }); }
 function renderSum(armed){
   var tot = {}, any = false, amt = 0, p1 = 0, p2 = 0, pd = 0, dl = 0;
   routeNames().forEach(function(nm){
@@ -265,7 +272,7 @@ function render(){
 
 /* ---- 실시간 공유 (Firebase Realtime Database, REST) ---- */
 function ek(nm){ return encodeURIComponent(nm).replace(/\./g,"%2E"); }
-var NAMES = {}; DATA.forEach(function(d){ NAMES[ek(d.n)] = d.n; });
+var NAMES = {}; DATA.forEach(function(d){ NAMES[ek(d.n)] = d.n; if (isShared(d)) NAMES[ek(d.n+"~2")] = d.n+"~2"; });
 var root = null, gotFirst = false;
 var syncEl = document.createElement("p");
 syncEl.id = "sync"; syncEl.style.cssText = "margin:6px 16px 0;font-size:12px;color:var(--muted)";
@@ -341,6 +348,13 @@ function applyFills(){
   FILLS.forEach(function(f){
     if (f.day !== DAY || (root.filled && root.filled[f.id])) return;
     root.counts = root.counts || {};
+    if (f.clear) Object.keys(f.data).forEach(function(nm){
+      var pn = nm.replace(/~2$/, ""), pk = ek(pn);
+      if (root.counts[pk] && JSON.stringify(root.counts[pk]) === JSON.stringify(f.data[nm])) {
+        delete root.counts[pk];
+        fetch(BASE + "/counts/" + encodeURIComponent(pk) + ".json", { method: "DELETE" }).catch(function(){});
+      }
+    });
     Object.keys(f.data).forEach(function(nm){
       var k = ek(nm); if (root.counts[k]) return;
       root.counts[k] = f.data[nm];
@@ -498,10 +512,11 @@ function showScan(j){
 function applyScan(){
   if (!scanResult) return;
   var next = {};
-  Object.keys(counts).forEach(function(nm){ var c = counts[nm]; var o = {}; if (c._amt) o._amt = c._amt; if (c._pk) o._pk = c._pk; if (c._paid) o._paid = c._paid; if (c._dl) o._dl = c._dl; if (c._memo) o._memo = c._memo; EXTRA.forEach(function(k){ if (c[k]) o[k] = c[k]; }); if (Object.keys(o).length) next[nm] = o; });
+  var mine = {}; routeNames().forEach(function(k){ mine[k] = 1; });
+  Object.keys(counts).forEach(function(nm){ if (!mine[nm]) { next[nm] = counts[nm]; return; } var c = counts[nm]; var o = {}; if (c._amt) o._amt = c._amt; if (c._pk) o._pk = c._pk; if (c._paid) o._paid = c._paid; if (c._dl) o._dl = c._dl; if (c._memo) o._memo = c._memo; EXTRA.forEach(function(k){ if (c[k]) o[k] = c[k]; }); if (Object.keys(o).length) next[nm] = o; });
   scanResult.forEach(function(x){
-    KINDS.forEach(function(k){ var n = Math.round(+x[k] || 0); if (n > 0 && n <= 50) { next[x.name] = next[x.name] || {}; next[x.name][k] = n; } });
-    var am = Math.round(+x["금액"] || 0); if (am > 0 && am < 100000000) { next[x.name] = next[x.name] || {}; next[x.name]._amt = am; }
+    KINDS.forEach(function(k){ var n = Math.round(+x[k] || 0); if (n > 0 && n <= 50) { var kx = K(x.name); next[kx] = next[kx] || {}; next[kx][k] = n; } });
+    var am = Math.round(+x["금액"] || 0); if (am > 0 && am < 100000000) { var ka = K(x.name); next[ka] = next[ka] || {}; next[ka]._amt = am; }
   });
   counts = next; save(); refreshSelects(); renderSum(false);
   var enc = {}; Object.keys(counts).forEach(function(nm){ enc[ek(nm)] = counts[nm]; });
@@ -555,8 +570,9 @@ function histDay(k){
   fetch(DB + "/baesong/" + k + "/counts.json").then(function(r){ return r.json(); }).then(function(c){
     c = c || {};
     var tot = {}, amt = 0, paid = 0, rows = "", n = 0;
-    DATA.forEach(function(d){
-      var v = c[ek(d.n)]; if (!v) return;
+    var ents = []; DATA.forEach(function(d){ ents.push([d.n, d.n]); if (isShared(d)) ents.push([d.n+"~2", d.n+" (루트 2)"]); });
+    ents.forEach(function(en){
+      var d = {n: en[1]}; var v = c[ek(en[0])]; if (!v) return;
       var q = [], has = false;
       ALLK.forEach(function(kd){ var x = +v[kd] || 0; if (x) { has = true; q.push(kd+" "+x); tot[kd] = (tot[kd]||0) + x; } });
       var a = +v._amt || 0; if (a) { has = true; amt += a; if (v._paid) paid += a; }
