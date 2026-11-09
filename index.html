@@ -65,8 +65,8 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 .pk button{font:inherit;font-size:15px;min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
 .pk button.on1{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:700}
 .pk button.on2{background:var(--red);border-color:var(--red);color:var(--red-fg);font-weight:700}
-.scan{margin:10px 16px 0}
-.scan button{font:inherit;font-size:15px;font-weight:700;width:100%;min-height:48px;border-radius:10px;border:1px dashed var(--accent);background:var(--surface);color:var(--accent);cursor:pointer}
+.scan{margin:10px 16px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.scan button{font:inherit;font-size:15px;font-weight:700;width:100%;min-width:0;min-height:48px;border-radius:10px;border:1px dashed var(--accent);background:var(--surface);color:var(--accent);cursor:pointer}
 .scan button[disabled]{opacity:.6}
 .ovl{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50}
 .ovl[hidden]{display:none}
@@ -92,7 +92,7 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 <section class="intro">
   <p class="hint">「네이버지도 길안내」를 누르면 네이버지도 앱이 열리고 해당 주소가 검색됩니다. 앱에서 「도착」을 누르면 길안내가 시작됩니다.</p>
 </section>
-<div class="scan"><button type="button" id="scanBtn">📷 배송표 촬영해서 수량 자동 입력</button><input type="file" id="scanFile" accept="image/*" hidden></div>
+<div class="scan"><button type="button" id="scanBtn">📷 카메라로 촬영</button><button type="button" id="scanAlbum">🖼 앨범에서 선택</button><input type="file" id="scanFile" accept="image/*" capture="environment" hidden><input type="file" id="scanFileAlbum" accept="image/*" hidden></div>
 <div class="ovl" id="ovl" hidden><div class="box" role="dialog" aria-modal="true" aria-label="읽은 수량 확인"><div id="ovlBody"></div><div class="ovl-acts"><button type="button" id="ovlNo">취소</button><button type="button" id="ovlYes" class="go2">적용</button></div></div></div>
 <main id="app"></main>
 
@@ -118,7 +118,7 @@ var DATA = [
  {g:"남동구",no:8,n:"GDS",time:"12:00",pick:"다음날 수거, 금요일은 당일수거",pay:"말일결제",a:"남동구 오봉동로4번길 31",q:"인천 남동구 오봉동로4번길 31"},
  {g:"남동구",no:9,n:"서창내과",time:"12:00",qty:[["일반",5]],pick:"다음날 수거, 금요일은 당일수거",day:"월·목·금",pay:"말일결제-카드",a:"남동구 매소홀로 1137 2층",q:"인천 남동구 매소홀로 1137"},
  {g:"남동구",no:10,n:"신세기안경원 (서창내과 건물)",qty:[["일반",2]],day:"월·목·금",pay:"월말결제",a:"남동구 매소홀로 1137 1층",q:"인천 남동구 매소홀로 1137"},
- {g:"남동구",no:11,n:"청선학교",time:"11:30",qty:[["많이",27]],pick:"매일 수거",pay:"말일결제",a:"남동구 인주대로914번길 16 5층 복도 (엘베 좌측)",q:"인천 남동구 인주대로914번길 16"},
+ {g:"남동구",no:11,n:"인천발달장애인",time:"11:30",qty:[["많이",27]],pick:"매일 수거",pay:"말일결제",a:"남동구 인주대로914번길 16 5층 복도 (엘베 좌측)",q:"인천 남동구 인주대로914번길 16"},
  {g:"남동구",no:14,n:"더베스트정형외과",qty:[["일반",9],["많이",9]],pick:"수거",pay:"월말결제",a:"남동구 호구포로 804 예담더스타 2층",q:"인천 남동구 호구포로 804",note:"9월 28일부터 시작\n주차위치: 지하주차장"},
  {g:"남동구",n:"청십자약국",pay:"월말결제",a:"남동구 호구포로 804 예담더스타 1층",q:"인천 남동구 호구포로 804"},
  {g:"남동구",no:12,n:"족발집",time:"2:00 ~ 4:00",pick:"수거",pay:"말일결제",a:"남동구 구월동 1239-18 1층",q:"인천 남동구 구월동 1239-18",note:"수거할 때 배송 · 반찬 보온가방 배송(3인분)"},
@@ -156,7 +156,7 @@ var SEED = {
  "자연놀이학교 루시어린이집":{"일반":2},
  "서창내과":{"일반":5},
  "신세기안경원 (서창내과 건물)":{"일반":2},
- "청선학교":{"양많이":27},
+ "인천발달장애인":{"양많이":27},
  "더베스트정형외과":{"일반":9,"양많이":9},
  "지원":{"스페셜":4},
  "slp 어학원":{"바트":1},
@@ -399,7 +399,12 @@ function scanCall(dataUrl, retry){
       try { localStorage.setItem(CODEKEY, c); } catch(e) {}
       return scanCall(dataUrl, true);
     }
-    return r.json().then(function(j){ if (!r.ok) throw new Error(j.error || ("오류 " + r.status)); return j; });
+    return r.text().then(function(t){
+      var j = null; try { j = JSON.parse(t); } catch(e) {}
+      if (!j) throw new Error(r.status === 404 ? "서버 기능(api/read-sheet.js)이 올라가 있지 않습니다. GitHub에 api 폴더를 올렸는지 확인하세요. (오류 404)" : "서버 응답을 해석하지 못했습니다. (오류 " + r.status + ")");
+      if (!r.ok) throw new Error(j.error || ("오류 " + r.status));
+      return j;
+    });
   });
 }
 function showScan(j){
@@ -438,15 +443,19 @@ function applyScan(){
   ovlHide();
 }
 document.getElementById("scanBtn").addEventListener("click", function(){ document.getElementById("scanFile").click(); });
-document.getElementById("scanFile").addEventListener("change", function(ev){
+document.getElementById("scanAlbum").addEventListener("click", function(){ document.getElementById("scanFileAlbum").click(); });
+function onPick(ev){
   var f = ev.target.files && ev.target.files[0]; ev.target.value = ""; if (!f) return;
-  var btn = document.getElementById("scanBtn"); btn.disabled = true; btn.textContent = "사진을 읽는 중… (10~30초)";
-  var done = function(){ btn.disabled = false; btn.textContent = "📷 배송표 촬영해서 수량 자동 입력"; };
+  var b1 = document.getElementById("scanBtn"), b2 = document.getElementById("scanAlbum");
+  b1.disabled = b2.disabled = true; b1.textContent = "읽는 중… (10~30초)";
+  var done = function(){ b1.disabled = b2.disabled = false; b1.textContent = "📷 카메라로 촬영"; };
   shrink(f, function(du){
     if (!du) { done(); ovlShow('<p class="warn">사진을 열 수 없습니다.</p>', false); return; }
     scanCall(du).then(function(j){ done(); showScan(j); }).catch(function(e){ done(); ovlShow('<h3>읽기 실패</h3><p class="warn">'+esc(e.message || e)+'</p>', false); });
   });
-});
+}
+document.getElementById("scanFile").addEventListener("change", onPick);
+document.getElementById("scanFileAlbum").addEventListener("change", onPick);
 document.getElementById("ovlNo").addEventListener("click", ovlHide);
 document.getElementById("ovlYes").addEventListener("click", applyScan);
 
