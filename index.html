@@ -98,7 +98,7 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 
 <div class="top">
   <h1><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M11 8V6.5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2V8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="3.5" y="8" width="25" height="6" rx="2" fill="currentColor"/><rect x="5" y="14" width="22" height="13.5" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 20.7h22" stroke="currentColor" stroke-width="2"/><rect x="14" y="11.5" width="4" height="5" rx="1" fill="var(--bg)" stroke="currentColor" stroke-width="1.5"/></svg><span>푸드홀릭 배송[남동•부평]</span><small id="count"></small></h1>
-  <input id="q" type="search" placeholder="업체명·주소 검색" autocomplete="off" aria-label="업체명 또는 주소 검색">
+  <select id="q" aria-label="업체 선택"><option value="">전체 업체 보기</option></select>
   <div class="sum" id="sum"></div>
 </div>
 <section class="intro">
@@ -255,8 +255,8 @@ function card(d){
 }
 
 function render(){
-  var term = document.getElementById("q").value.trim().toLowerCase();
-  var rows = DATA.filter(function(d){ return inRoute(d) && (!term || (d.n+" "+d.a).toLowerCase().indexOf(term) >= 0); });
+  var term = document.getElementById("q").value;
+  var rows = DATA.filter(function(d){ return inRoute(d) && (!term || d.n === term); });
   document.getElementById("count").textContent = rows.length + "곳";
   var out = "";
   var routed = rows.filter(function(d){return numOf(d);}).sort(function(a,b){return numOf(a)-numOf(b) || DATA.indexOf(a)-DATA.indexOf(b);});
@@ -388,7 +388,14 @@ function push(nm, k, n){
   req.catch(function(){ setSync(false, "저장 실패 · 연결을 확인하세요"); });
 }
 document.addEventListener("visibilitychange", function(){ if (!document.hidden && todayKey() !== DAY) location.reload(); });
-document.getElementById("q").addEventListener("input", render);
+function fillQ(){
+  var s = document.getElementById("q"), cur = s.value;
+  var list = DATA.filter(function(d){ return inRoute(d); }).sort(function(a,b){ var x = numOf(a), y = numOf(b); return (x == null ? 999 : x) - (y == null ? 999 : y) || DATA.indexOf(a) - DATA.indexOf(b); });
+  var h = '<option value="">전체 업체 보기 ('+list.length+'곳)</option>', ok = false;
+  list.forEach(function(d){ if (d.n === cur) ok = true; h += '<option value="'+esc(d.n)+'">'+(numOf(d) ? numOf(d)+". " : "")+esc(d.n)+'</option>'; });
+  s.innerHTML = h; s.value = ok ? cur : "";
+}
+document.getElementById("q").addEventListener("change", render);
 document.getElementById("app").addEventListener("change", function(ev){
   var s = ev.target.closest("select[data-kind]"); if (!s) return;
   var nm = s.getAttribute("data-name"), k = s.getAttribute("data-kind");
@@ -541,6 +548,7 @@ document.getElementById("ovlNo").addEventListener("click", ovlHide);
 document.getElementById("ovlYes").addEventListener("click", applyScan);
 
 function paintRoute(){
+  fillQ();
   var h = "";
   ROUTES.forEach(function(r){ h += '<button type="button" role="tab" data-route="'+r.id+'" class="'+(r.id===ROUTE?'on':'')+'" aria-selected="'+(r.id===ROUTE?'true':'false')+'">루트 '+r.id+' · '+r.name+'</button>'; });
   document.getElementById("tabs").innerHTML = h;
