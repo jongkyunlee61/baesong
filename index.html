@@ -85,6 +85,7 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 .hd{display:flex;justify-content:space-between;align-items:center;width:100%;font:inherit;font-size:15px;min-height:46px;padding:0 12px;margin:6px 0;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
 .hd b{font-variant-numeric:tabular-nums}
 .ovl li small{color:var(--muted);display:block;font-size:12px}
+.memo{display:flex;align-items:center;gap:8px;margin-top:10px}.memo span{font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap}.memo input{font:inherit;font-size:16px;flex:1;min-width:0;box-sizing:border-box;min-height:44px;padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}.memo input.on{border-color:var(--accent);background:var(--chip)}
 .ovl-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .ovl-acts button{font:inherit;font-size:15px;min-height:46px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
 .ovl-acts .go2{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:700}
@@ -159,6 +160,7 @@ function webLink(q){ return "https://map.naver.com/p/search/" + encodeURICompone
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
 
 var KINDS = ["일반","양많이","특양많이","스페셜","샐러드","바트"];
+var EXTRA = ["어린이","수저국자","밥","옛날도시락"], ALLK = KINDS.concat(EXTRA);
 var LABEL = {"많이":"양많이","밑반/샐러드":"샐러드"};
 var DB = "https://baesong-5ac3f-default-rtdb.asia-southeast1.firebasedatabase.app";
 function todayKey(){ return new Date(Date.now()+9*3600*1000).toISOString().slice(0,10).replace(/-/g,""); }
@@ -187,12 +189,13 @@ function payBlock(d){
 function countBlock(d){
   var cur = counts[d.n] || {};
   var h = '<p class="cnt-t">배송 수량</p><div class="cnt">';
-  KINDS.forEach(function(k){
+  ALLK.forEach(function(k){
     var v = cur[k] || "";
     var o = OPTS.replace('value="'+v+'"', 'value="'+v+'" selected');
     h += '<label>'+k+'<select data-name="'+esc(d.n)+'" data-kind="'+k+'" class="'+(v?'on':'')+'" aria-label="'+esc(d.n)+' '+k+' 수량">'+o+'</select></label>';
   });
   h += '</div>';
+  h += '<div class="memo"><span>특이사항</span><input type="text" class="memoin'+(cur._memo?' on':'')+'" data-name="'+esc(d.n)+'" value="'+esc(cur._memo||'')+'" placeholder="직접 입력" maxlength="200" aria-label="'+esc(d.n)+' 특이사항"></div>';
   h += '<div class="pk" role="group" aria-label="배송·수거 여부"><button type="button" data-dl="1" data-name="'+esc(d.n)+'" class="'+(cur._dl?'ondl':'')+'" aria-pressed="'+(cur._dl?'true':'false')+'">배송완료</button><button type="button" data-pk="1" data-name="'+esc(d.n)+'" class="'+(cur._pk===1?'on1':'')+'">수거완료</button><button type="button" data-pk="2" data-name="'+esc(d.n)+'" class="'+(cur._pk===2?'on2':'')+'">미수거</button></div>';
   return h;
 }
@@ -202,14 +205,14 @@ function renderSum(armed){
   var tot = {}, any = false, amt = 0, p1 = 0, p2 = 0, pd = 0, dl = 0;
   routeNames().forEach(function(nm){
     var c = counts[nm] || {};
-    KINDS.forEach(function(k){ var v = +c[k]||0; if (v){ tot[k]=(tot[k]||0)+v; any = true; } });
+    ALLK.forEach(function(k){ var v = +c[k]||0; if (v){ tot[k]=(tot[k]||0)+v; any = true; } });
     if (+c._amt) { amt += +c._amt; any = true; }
     if (c._paid) { pd++; any = true; }
     if (c._dl) { dl++; any = true; }
     if (c._pk === 1) { p1++; any = true; } else if (c._pk === 2) { p2++; any = true; }
   });
   var h = '<span>합계</span>';
-  if (any) KINDS.forEach(function(k){ if (tot[k]) h += '<span class="chip">'+k+' <b>'+tot[k]+'</b></span>'; });
+  if (any) ALLK.forEach(function(k){ if (tot[k]) h += '<span class="chip">'+k+' <b>'+tot[k]+'</b></span>'; });
   if (amt) h += '<span class="chip">결제 <b>'+String(amt).replace(/\B(?=(\d{3})+(?!\d))/g, ",")+'원</b></span>';
   if (dl) h += '<span class="chip">배송완료 <b>'+dl+'</b>곳</span>';
   if (pd) h += '<span class="chip">결제완료 <b>'+pd+'</b>곳</span>';
@@ -287,6 +290,13 @@ function refreshSelects(){
     x.value = a ? String(a).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
     x.className = "amt" + (a ? " on" : "");
   }
+  var mi = document.querySelectorAll("input.memoin");
+  for (var m0 = 0; m0 < mi.length; m0++) {
+    var mx = mi[m0]; if (document.activeElement === mx) continue;
+    var mv = (counts[mx.getAttribute("data-name")] || {})._memo || "";
+    if (mx.value !== mv) mx.value = mv;
+    mx.className = "memoin" + (mv ? " on" : "");
+  }
   var pb = document.querySelectorAll("button[data-paid]");
   for (var q2 = 0; q2 < pb.length; q2++) {
     var on = !!(counts[pb[q2].getAttribute("data-name")] || {})._paid;
@@ -307,7 +317,8 @@ function applyRemote(){
   var rc = (root && root.counts) || {}, c = {};
   Object.keys(rc).forEach(function(k){
     var nm = NAMES[k]; if (!nm || !rc[k]) return;
-    var o = {}; KINDS.concat(['_amt','_pk','_paid','_dl']).forEach(function(kd){ var n = +rc[k][kd]; if (n) o[kd] = n; });
+    var o = {}; ALLK.concat(['_amt','_pk','_paid','_dl']).forEach(function(kd){ var n = +rc[k][kd]; if (n) o[kd] = n; });
+    if (typeof rc[k]._memo === 'string' && rc[k]._memo) o._memo = rc[k]._memo;
     if (Object.keys(o).length) c[nm] = o;
   });
   counts = c; save(); refreshSelects(); renderSum(false);
@@ -374,6 +385,15 @@ document.getElementById("app").addEventListener("change", function(ev){
   if (!Object.keys(counts[nm]).length) delete counts[nm];
   s.className = s.value ? "on" : "";
   save(); renderSum(false); push(nm, k, +s.value || 0);
+});
+document.getElementById("app").addEventListener("change", function(ev){
+  var mm = ev.target.closest("input.memoin"); if (!mm) return;
+  var nm = mm.getAttribute("data-name"), t = mm.value.trim();
+  counts[nm] = counts[nm] || {};
+  if (t) counts[nm]._memo = t; else delete counts[nm]._memo;
+  if (!Object.keys(counts[nm]).length) delete counts[nm];
+  mm.className = "memoin" + (t ? " on" : "");
+  save(); push(nm, "_memo", t);
 });
 document.getElementById("app").addEventListener("change", function(ev){
   var x = ev.target.closest("input.amt"); if (!x) return;
@@ -480,7 +500,7 @@ function showScan(j){
 function applyScan(){
   if (!scanResult) return;
   var next = {};
-  Object.keys(counts).forEach(function(nm){ var c = counts[nm]; var o = {}; if (c._amt) o._amt = c._amt; if (c._pk) o._pk = c._pk; if (c._paid) o._paid = c._paid; if (c._dl) o._dl = c._dl; if (Object.keys(o).length) next[nm] = o; });
+  Object.keys(counts).forEach(function(nm){ var c = counts[nm]; var o = {}; if (c._amt) o._amt = c._amt; if (c._pk) o._pk = c._pk; if (c._paid) o._paid = c._paid; if (c._dl) o._dl = c._dl; if (c._memo) o._memo = c._memo; EXTRA.forEach(function(k){ if (c[k]) o[k] = c[k]; }); if (Object.keys(o).length) next[nm] = o; });
   scanResult.forEach(function(x){
     KINDS.forEach(function(k){ var n = Math.round(+x[k] || 0); if (n > 0 && n <= 50) { next[x.name] = next[x.name] || {}; next[x.name][k] = n; } });
     var am = Math.round(+x["금액"] || 0); if (am > 0 && am < 100000000) { next[x.name] = next[x.name] || {}; next[x.name]._amt = am; }
@@ -540,14 +560,14 @@ function histDay(k){
     DATA.forEach(function(d){
       var v = c[ek(d.n)]; if (!v) return;
       var q = [], has = false;
-      KINDS.forEach(function(kd){ var x = +v[kd] || 0; if (x) { has = true; q.push(kd+" "+x); tot[kd] = (tot[kd]||0) + x; } });
+      ALLK.forEach(function(kd){ var x = +v[kd] || 0; if (x) { has = true; q.push(kd+" "+x); tot[kd] = (tot[kd]||0) + x; } });
       var a = +v._amt || 0; if (a) { has = true; amt += a; if (v._paid) paid += a; }
-      if (!has && !v._pk && !v._dl) return;
+      if (!has && !v._pk && !v._dl && !v._memo) return;
       n++;
       var st = []; if (v._dl) st.push("배송완료"); if (v._paid) st.push("결제완료"); if (v._pk === 1) st.push("수거완료"); if (v._pk === 2) st.push("미수거");
-      rows += "<li><span>"+esc(d.n)+"<small>"+(q.join(" · ")||"수량 없음")+(st.length?" · "+st.join(" · "):"")+"</small></span><b>"+(a?won(a):"")+"</b></li>";
+      rows += "<li><span>"+esc(d.n)+"<small>"+(q.join(" · ")||"수량 없음")+(st.length?" · "+st.join(" · "):"")+(v._memo?"<br>특이사항: "+esc(v._memo):"")+"</small></span><b>"+(a?won(a):"")+"</b></li>";
     });
-    var ts = KINDS.filter(function(kd){ return tot[kd]; }).map(function(kd){ return kd+" "+tot[kd]; }).join(" · ") || "수량 없음";
+    var ts = ALLK.filter(function(kd){ return tot[kd]; }).map(function(kd){ return kd+" "+tot[kd]; }).join(" · ") || "수량 없음";
     histBody.innerHTML = "<h3>"+dFmt(k)+"</h3><div class='okm'>"+n+"곳 · "+esc(ts)+"</div><div class='okm'>결제금액 합계 "+won(amt)+" (결제완료 "+won(paid)+")</div><ul>"+(rows||"<li>이 날짜에 입력된 내용이 없습니다.</li>")+"</ul>";
   }).catch(function(){ histBody.innerHTML = "<h3>"+dFmt(k)+"</h3><p>불러오지 못했습니다.</p>"; });
 }
