@@ -27,7 +27,7 @@ h1 small{font-weight:400;font-size:13px;color:var(--muted);margin-left:2px}
 h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font-weight:700}
 .list{display:grid;gap:10px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
-.head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.head{display:flex;flex-wrap:nowrap;align-items:center;gap:4px 8px}
 .name{font-size:16.5px;font-weight:700;margin:0;min-width:0;overflow-wrap:anywhere}
 .time{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .meta{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
@@ -40,6 +40,9 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 .btn{font:inherit;font-size:15px;font-weight:700;text-decoration:none;border-radius:10px;padding:11px 14px;min-height:44px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
 .btn.go{flex:1 1 150px}
 .btn.go{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.head .nav{margin-left:auto;flex:0 0 auto;min-height:38px;padding:7px 11px;font-size:14px;white-space:nowrap}
+.head .name{flex:1 1 0;min-width:0}
+.head{align-items:center}
 .btn.sub{flex:0 1 auto;font-weight:500}
 .none{font-size:13.5px;color:var(--muted)}
 .no{flex:none;align-self:center;min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:13px;background:var(--red);color:var(--red-fg);font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
@@ -211,14 +214,14 @@ function renderSum(armed){
     if (c._dl) { dl++; any = true; }
     if (c._pk === 1) { p1++; any = true; } else if (c._pk === 2) { p2++; any = true; }
   });
-  var h = '<span>합계</span>';
+  var h = '<span>루트 '+ROUTE+' 합계</span>';
   if (any) ALLK.forEach(function(k){ if (tot[k]) h += '<span class="chip">'+k+' <b>'+tot[k]+'</b></span>'; });
   if (amt) h += '<span class="chip">결제 <b>'+String(amt).replace(/\B(?=(\d{3})+(?!\d))/g, ",")+'원</b></span>';
   if (dl) h += '<span class="chip">배송완료 <b>'+dl+'</b>곳</span>';
   if (pd) h += '<span class="chip">결제완료 <b>'+pd+'</b>곳</span>';
   if (p1 || p2) h += '<span class="chip">수거완료 <b>'+p1+'</b> · 미수거 <b>'+p2+'</b></span>';
   if (!any) h += '<span>선택 없음</span>';
-  if (any) h += '<button type="button" class="rst" id="rst">'+(armed?'한 번 더 누르면 초기화':'전체 초기화')+'</button>';
+  if (any) h += '<button type="button" class="rst" id="rst">'+(armed?'한 번 더 누르면 초기화':'루트 '+ROUTE+' 초기화')+'</button>';
   document.getElementById("sum").innerHTML = h;
 }
 
@@ -230,7 +233,7 @@ function numOf(d){ return ROUTE === 2 ? d.r2 : d.no; }
 function routeName(){ return ROUTES[ROUTE - 1].name; }
 
 function card(d){
-  var h = '<article class="card"><div class="head">'+(numOf(d)?'<span class="no" aria-label="번호 '+numOf(d)+'">'+numOf(d)+'</span>':'')+'<h3 class="name">'+esc(d.n)+'</h3>'+(d.time?'<span class="time">'+esc(d.time)+'</span>':'')+'</div>' + payBlock(d);
+  var h = '<article class="card"><div class="head">'+(numOf(d)?'<span class="no" aria-label="번호 '+numOf(d)+'">'+numOf(d)+'</span>':'')+'<h3 class="name">'+esc(d.n)+'</h3>'+(d.time?'<span class="time">'+esc(d.time)+'</span>':'')+(d.q?'<a class="btn go nav" href="'+esc(appLink(d.q))+'">네이버 길안내</a>':'')+'</div>' + payBlock(d);
   var chips = [];
   if (d.pick) chips.push('<span class="chip pick">'+esc(d.pick)+'</span>');
   if (d.day) chips.push('<span class="chip">주문 '+esc(d.day)+'</span>');
@@ -240,12 +243,7 @@ function card(d){
   if (d.note) h += '<p class="note">'+esc(d.note)+'</p>';
   if (d.tel) h += '<p class="addr">전화 '+esc(d.tel)+'</p>';
   h += countBlock(d);
-  if (d.q) {
-    h += '<div class="acts"><a class="btn go" href="'+esc(appLink(d.q))+'">네이버지도 길안내</a>'+
-         '<a class="btn sub" href="'+esc(webLink(d.q))+'" target="_blank" rel="noopener">웹지도</a></div>';
-  } else {
-    h += '<p class="none">길안내 없음</p>';
-  }
+  if (!d.q) h += '<p class="none">길안내 없음</p>';
   return h + '</article>';
 }
 
