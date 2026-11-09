@@ -569,20 +569,26 @@ function histDay(k){
   histBack.hidden = false; histBody.innerHTML = "<h3>"+dFmt(k)+"</h3><p>불러오는 중…</p>";
   fetch(DB + "/baesong/" + k + "/counts.json").then(function(r){ return r.json(); }).then(function(c){
     c = c || {};
-    var tot = {}, amt = 0, paid = 0, rows = "", n = 0;
-    var ents = []; DATA.forEach(function(d){ ents.push([d.n, d.n]); if (isShared(d)) ents.push([d.n+"~2", d.n+" (루트 2)"]); });
-    ents.forEach(function(en){
-      var d = {n: en[1]}; var v = c[ek(en[0])]; if (!v) return;
-      var q = [], has = false;
-      ALLK.forEach(function(kd){ var x = +v[kd] || 0; if (x) { has = true; q.push(kd+" "+x); tot[kd] = (tot[kd]||0) + x; } });
-      var a = +v._amt || 0; if (a) { has = true; amt += a; if (v._paid) paid += a; }
-      if (!has && !v._pk && !v._dl && !v._memo) return;
-      n++;
-      var st = []; if (v._dl) st.push("배송완료"); if (v._paid) st.push("결제완료"); if (v._pk === 1) st.push("수거완료"); if (v._pk === 2) st.push("미수거");
-      rows += "<li><span>"+esc(d.n)+"<small>"+(q.join(" · ")||"수량 없음")+(st.length?" · "+st.join(" · "):"")+(v._memo?"<br>미결재/비고: "+esc(v._memo):"")+"</small></span><b>"+(a?won(a):"")+"</b></li>";
+    var html = "<h3>"+dFmt(k)+"</h3>";
+    ROUTES.forEach(function(rt){
+      var tot = {}, amt = 0, paid = 0, rows = "", n = 0;
+      DATA.filter(function(d){ return inRoute(d, rt.id); }).sort(function(a, b){
+        var x = rt.id === 2 ? a.r2 : a.no, y = rt.id === 2 ? b.r2 : b.no;
+        return (x == null ? 999 : x) - (y == null ? 999 : y);
+      }).forEach(function(d){
+        var v = c[ek(K(d.n, rt.id))]; if (!v) return;
+        var q = [], has = false;
+        ALLK.forEach(function(kd){ var x = +v[kd] || 0; if (x) { has = true; q.push(kd+" "+x); tot[kd] = (tot[kd]||0) + x; } });
+        var a = +v._amt || 0; if (a) { has = true; amt += a; if (v._paid) paid += a; }
+        if (!has && !v._pk && !v._dl && !v._memo) return;
+        n++;
+        var st = []; if (v._dl) st.push("배송완료"); if (v._paid) st.push("결제완료"); if (v._pk === 1) st.push("수거완료"); if (v._pk === 2) st.push("미수거");
+        rows += "<li><span>"+esc(d.n)+"<small>"+(q.join(" · ")||"수량 없음")+(st.length?" · "+st.join(" · "):"")+(v._memo?"<br>미결재/비고: "+esc(v._memo):"")+"</small></span><b>"+(a?won(a):"")+"</b></li>";
+      });
+      var ts = ALLK.filter(function(kd){ return tot[kd]; }).map(function(kd){ return kd+" "+tot[kd]; }).join(" · ") || "수량 없음";
+      html += "<h3 style='margin-top:16px'>루트 "+rt.id+" · "+esc(rt.name)+"</h3><div class='okm'>"+n+"곳 · "+esc(ts)+"</div><div class='okm'>결제금액 합계 "+won(amt)+" (결제완료 "+won(paid)+")</div><ul>"+(rows||"<li>입력된 내용이 없습니다.</li>")+"</ul>";
     });
-    var ts = ALLK.filter(function(kd){ return tot[kd]; }).map(function(kd){ return kd+" "+tot[kd]; }).join(" · ") || "수량 없음";
-    histBody.innerHTML = "<h3>"+dFmt(k)+"</h3><div class='okm'>"+n+"곳 · "+esc(ts)+"</div><div class='okm'>결제금액 합계 "+won(amt)+" (결제완료 "+won(paid)+")</div><ul>"+(rows||"<li>이 날짜에 입력된 내용이 없습니다.</li>")+"</ul>";
+    histBody.innerHTML = html;
   }).catch(function(){ histBody.innerHTML = "<h3>"+dFmt(k)+"</h3><p>불러오지 못했습니다.</p>"; });
 }
 document.getElementById("histBtn").addEventListener("click", function(){ histEl.hidden = false; histList(); });
