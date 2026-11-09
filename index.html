@@ -40,8 +40,10 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 .btn{font:inherit;font-size:15px;font-weight:700;text-decoration:none;border-radius:10px;padding:11px 14px;min-height:44px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
 .btn.go{flex:1 1 150px}
 .btn.go{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
-.head .nav{margin-left:auto;flex:0 0 auto;min-height:38px;padding:7px 11px;font-size:14px;white-space:nowrap}
-.head .name{flex:1 1 0;min-width:0}
+.head .nav{margin-left:auto;flex:0 0 auto;min-height:38px;padding:7px 9px;font-size:13px;white-space:nowrap}
+.head .name{font-size:16px;flex:1 1 0;min-width:0;word-break:keep-all;overflow-wrap:normal}
+.name .nl{display:block;white-space:nowrap;line-height:1.3}
+@media (max-width:340px){.head .name{font-size:14px}.head .nav{padding:7px 7px;font-size:12px}}
 .head{align-items:center}
 .btn.sub{flex:0 1 auto;font-weight:500}
 .none{font-size:13.5px;color:var(--muted)}
@@ -239,9 +241,21 @@ function inRoute(d, r){ r = r || ROUTE; return r === 2 ? (d.r2 != null || !!d.on
 function numOf(d){ return ROUTE === 2 ? d.r2 : d.no; }
 function routeName(){ return ROUTES[ROUTE - 1].name; }
 
+var SPLIT = {"한국지오인텍스연구원":["한국지오인텍스","연구원"],"연수오케이정형외과":["연수오케이","정형외과"]};
+function nameHtml(n){
+  var parts = SPLIT[n];
+  if (!parts && n.length > 8) {
+    var pi = n.indexOf(" ("), cut = -1;
+    if (pi > 0) cut = pi;
+    else { var best = 99, mid = n.length / 2; for (var i = 1; i < n.length; i++) if (n.charAt(i) === " " && Math.abs(i - mid) < best) { best = Math.abs(i - mid); cut = i; } }
+    if (cut > 0) parts = [n.slice(0, cut).trim(), n.slice(cut).trim()];
+  }
+  return parts ? '<span class="nl">'+esc(parts[0])+'</span><span class="nl">'+esc(parts[1])+'</span>' : esc(n);
+}
 function card(d){
-  var h = '<article class="card"><div class="head">'+(numOf(d)?'<span class="no" aria-label="번호 '+numOf(d)+'">'+numOf(d)+'</span>':'')+'<h3 class="name">'+esc(d.n)+'</h3>'+(d.time?'<span class="time">'+esc(d.time)+'</span>':'')+(d.q?'<a class="btn go nav" href="'+esc(appLink(d.q))+'">네이버 길안내</a>':'')+'</div>' + payBlock(d);
+  var h = '<article class="card"><div class="head">'+(numOf(d)?'<span class="no" aria-label="번호 '+numOf(d)+'">'+numOf(d)+'</span>':'')+'<h3 class="name">'+nameHtml(d.n)+'</h3>'+(d.q?'<a class="btn go nav" href="'+esc(appLink(d.q))+'">네이버 길안내</a>':'')+'</div>' + payBlock(d);
   var chips = [];
+  if (d.time) chips.push('<span class="chip pick">⏰ '+esc(d.time)+'</span>');
   if (d.pick) chips.push('<span class="chip pick">'+esc(d.pick)+'</span>');
   if (d.day) chips.push('<span class="chip">주문 '+esc(d.day)+'</span>');
   if (d.pay) chips.push('<span class="chip">'+esc(d.pay)+'</span>');
