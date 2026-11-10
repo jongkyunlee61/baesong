@@ -20,11 +20,12 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--bg);padding-block:12px 10px;border-bottom:1px solid var(--line);margin-inline:-4px;padding-inline:4px}
 h1{font-size:19px;margin:0 0 8px;font-weight:700;display:flex;align-items:center;gap:8px}
 .mark{flex:none;width:28px;height:28px;color:var(--accent)}
-h1.r1,h1.r2{padding:8px 12px;border-radius:10px;color:#fff}
+h1.r1,h1.r2,h1.r3{padding:8px 12px;border-radius:10px;color:#fff}
 h1.r1{background:var(--accent)}
 h1.r2{background:var(--red)}
-h1.r1 small,h1.r2 small{color:#fff;opacity:.85}
-h1.r1 .mark,h1.r2 .mark{color:#fff}
+h1.r3{background:#1565c0}
+h1.r1 small,h1.r2 small,h1.r3 small{color:#fff;opacity:.85}
+h1.r1 .mark,h1.r2 .mark,h1.r3 .mark{color:#fff}
 h1 small{font-weight:400;font-size:13px;color:var(--muted);margin-left:2px}
 #q{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
 #q:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -75,9 +76,12 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 .pk button.ondl{background:var(--red);border-color:var(--red);color:var(--red-fg);font-weight:700}
 .pk button.on1{background:var(--red);border-color:var(--red);color:var(--red-fg);font-weight:700}
 .pk button.on2{background:var(--red);border-color:var(--red);color:var(--red-fg);font-weight:700}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 16px 0}
-.tabs button{font:inherit;font-size:15px;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;min-width:0}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 16px 0}
+.tabs button span{display:block;line-height:1.25}.tabs button span+span{font-size:12.5px}
+.tabs button{font:inherit;font-size:14px;min-height:48px;padding:4px 2px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;min-width:0}
 .tabs button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:700}
+.tabs button.on[data-route="2"]{background:var(--red);border-color:var(--red);color:#fff}
+.tabs button.on[data-route="3"]{background:#1565c0;border-color:#1565c0;color:#fff}
 .scan{margin:10px 16px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .scan button{font:inherit;font-size:15px;font-weight:700;width:100%;min-width:0;min-height:48px;border-radius:10px;border:1px dashed var(--accent);background:var(--surface);color:var(--accent);cursor:pointer}
 .scan button[disabled]{opacity:.6}
@@ -121,16 +125,16 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 <script>
 var APPNAME = "com.insung.delivery";
 var DATA = [
- {g:"연수구",no:20,n:"삼성내과",pick:"매일 바트수거",day:"매일",pay:"월말결제",a:"연수구 옥련동 462-10 해창빌딩 5층",q:"원흥아파트.옥련시장",note:"안으로 들어가서 왼쪽 간호사님께 물어보세요"},
- {r2:3,g:"연수구",no:21,n:"동의당약국",day:"매일",pay:"말일결제",a:"연수구 한진로 23",q:"인천 연수구 한진로 23"},
- {r2:4,g:"연수구",no:22,n:"한국지오인텍스연구원",pay:"월말결제",a:"연수구 청량로109번길 47",q:"인천 연수구 청량로109번길 47"},
+ {r3:3,pick3:"금요일만 동구에서 수거",g:"연수구",no:20,n:"삼성내과",pick:"매일 바트수거",day:"매일",pay:"월말결제",a:"연수구 옥련동 462-10 해창빌딩 5층",q:"원흥아파트.옥련시장",note:"안으로 들어가서 왼쪽 간호사님께 물어보세요"},
+ {r3:5,pick3:"금요일만 동구에서 수거",r2:3,g:"연수구",no:21,n:"동의당약국",day:"매일",pay:"말일결제",a:"연수구 한진로 23",q:"인천 연수구 한진로 23"},
+ {r3:1,r2:4,g:"연수구",no:22,n:"한국지오인텍스연구원",pay:"월말결제",a:"연수구 청량로109번길 47",q:"인천 연수구 청량로109번길 47"},
  {g:"연수구",no:3,n:"연수오케이정형외과",qty:[["스페셜",10]],pick:"다음날 수거, 금요일은 당일수거",day:"매일",pay:"금요일결제",a:"연수구 앵고개로264번길 30-4 4층",q:"인천 연수구 앵고개로264번길 30-4",note:"배송장소: 지하1층(7505*)"},
  {g:"연수구",no:2,n:"메가커피 인천동춘점",qty:[["일반",3]],pick:"다음날 수거",pay:"사이트결제",a:"연수구 앵고개로264번길 41",q:"인천 연수구 앵고개로264번길 41"},
  {g:"연수구",no:1,n:"드림동물병원",pick:"다음날 수거, 금요일은 당일수거",pay:"사이트결제",a:"연수구 먼우금로 88 105호",q:"인천 연수구 먼우금로 88"},
  {g:"연수구",no:4,n:"연희동물의료센터",qty:[["일반",11]],pick:"다음날 수거, 금요일은 당일수거",pay:"말일결제",a:"연수구 청능대로 93 이리옴프라자 301-1호 (1040*)",note:"주차위치: 지하주차장",q:"인천 연수구 청능대로 93"},
- {r2:5,g:"연수구",no:18,n:"트윈클어학원 6층",pick:"월~목 수거",day:"매일",pay:"월말결제-계좌",a:"연수구 신송로 154 더제니스빌딩 6층 왼쪽",q:"인천 연수구 신송로 154",note:"배송+수거\n주차위치: 지하주차장"},
- {r2:5,g:"연수구",no:18,n:"트윈클어학원 7층",pick:"월~목 수거",a:"연수구 신송로 154 더제니스빌딩 7층 왼쪽",q:"인천 연수구 신송로 154",note:"배송+수거\n주차위치: 지하주차장"},
- {r2:7,g:"연수구",no:19,n:"송도키즈스포츠단",pick:"매일수거",a:"연수구 해돋이로 167 힐링프라자 5층 (송도동 22-2)",note:"주차위치: 지하주차장\n매주 금요일 아침 간식 배송\n수거: 2시 15분 이후",q:"인천 연수구 해돋이로 167"},
+ {r3:16,pick3:"매주 금요일만 수거 (연휴 시작 전만 수거)",note3:"",r2:5,g:"연수구",no:18,n:"트윈클어학원 6층",pick:"월~목 수거",day:"매일",pay:"월말결제-계좌",a:"연수구 신송로 154 더제니스빌딩 6층 왼쪽",q:"인천 연수구 신송로 154",note:"배송+수거\n주차위치: 지하주차장"},
+ {r3:16,pick3:"매주 금요일만 수거 (연휴 시작 전만 수거)",note3:"",r2:5,g:"연수구",no:18,n:"트윈클어학원 7층",pick:"월~목 수거",a:"연수구 신송로 154 더제니스빌딩 7층 왼쪽",q:"인천 연수구 신송로 154",note:"배송+수거\n주차위치: 지하주차장"},
+ {r3:17,time3:"11:30",pick3:"동구에서 간식전달하기 (월~목), 금요일은 송도에서",note3:"점심시간에 간식 들고 가세요\n수거: 2시 15분 이후",r2:7,g:"연수구",no:19,n:"송도키즈스포츠단",pick:"매일수거",a:"연수구 해돋이로 167 힐링프라자 5층 (송도동 22-2)",note:"주차위치: 지하주차장\n매주 금요일 아침 간식 배송\n수거: 2시 15분 이후",q:"인천 연수구 해돋이로 167"},
  {g:"남동구",no:6,n:"해오름 아동발달클리닉 (4층)",pick:"다음날 수거, 금요일은 당일수거",pay:"현장결제",a:"남동구 에코중앙로 152 4층",q:"인천 남동구 에코중앙로 152"},
  {g:"남동구",no:6,n:"해오름 아동발달클리닉 (3층)",pick:"다음날 수거, 금요일은 당일수거",day:"매일",pay:"금요일결제",a:"남동구 에코중앙로 152 3층",q:"인천 남동구 에코중앙로 152"},
  {g:"남동구",no:7,n:"양지온누리약국",qty:[["많이",1],["스페셜","특양 많이"]],pick:"다음날 수거, 금요일은 당일수거",a:"남동구 에코중앙로156번길 5-19",q:"인천 남동구 에코중앙로156번길 5-19"},
@@ -146,16 +150,28 @@ var DATA = [
  {g:"남동구",no:14,n:"족발집",time:"2:00 ~ 4:00",pick:"수거",pay:"말일결제",a:"남동구 구월동 1239-18 1층",q:"인천 남동구 구월동 1239-18",note:"수거할 때 배송 · 반찬 보온가방 배송(3인분)"},
  {g:"남동구",no:15,n:"지원",qty:[["스페셜",4]],pick:"수거",pay:"말일결제-계좌",a:"구월남로 260번길 20 1층",q:"인천 남동구 구월남로260번길 20"},
  {g:"남동구",no:17,n:"slp 어학원",time:"12:20",qty:[["일반","바트1, 국통1"]],pick:"수거",pay:"말일-카드",a:"남동구 용천로 87 3층 서강slp어학원",q:"인천 남동구 용천로 87 103호"},
- {only2:1,r2:1,g:"연수구",n:"헤어254",pay:"월말결제",a:"연수구 옥련동 옥련로99번길 39, 1층 헤어254",q:"인천 연수구 옥련로99번길 39",note:"배송하면서 전날꺼 받기"},
- {only2:1,r2:2,g:"연수구",n:"하나태권도",pick:"매일 송도에서 수거",pay:"말일결제",a:"연수구 능허대로79번길 66 2층",q:"인천 연수구 능허대로79번길 66"},
+ {r3:6,pick3:"동구에서 수거",note3:"",only2:1,r2:1,g:"연수구",n:"헤어254",pay:"월말결제",a:"연수구 옥련동 옥련로99번길 39, 1층 헤어254",q:"인천 연수구 옥련로99번길 39",note:"배송하면서 전날꺼 받기"},
+ {r3:4,pick3:"동구에서 수거",note3:"오일파(표) 1",only2:1,r2:2,g:"연수구",n:"하나태권도",pick:"매일 송도에서 수거",pay:"말일결제",a:"연수구 능허대로79번길 66 2층",q:"인천 연수구 능허대로79번길 66"},
  {only2:1,r2:6,g:"연수구",n:"자윤한의원",pick:"다음날 수거 (화·금요일은 제외)",pay:"말일결제-카드",a:"연수구 신송로 153 더마란츠 6층",q:"인천 연수구 신송로 153"},
  {only2:1,r2:8,g:"연수구",n:"유니미니",time:"11:30",a:"연수구 테크노파크로 111번길 8 에스타워 (송도동 8-8) 7층",q:"인천 연수구 테크노파크로 111번길 8"},
  {only2:1,r2:9,g:"연수구",n:"와이오토컴퍼니",note:"옛날도시락 5개",a:""},
  {only2:1,r2:10,g:"연수구",n:"조남철강",time:"11:30",pick:"다음날 수거, 금요일은 당일수거",pay:"말일결제-계좌",a:"인천 연수구 아암대로 797",q:"인천 연수구 아암대로 797"},
  {only2:1,r2:11,g:"연수구",n:"태성물류",time:"11:30",pay:"말일결제",a:"연수구 동춘동 913-6",q:"인천 연수구 동춘동 913-6"},
  {only2:1,r2:12,g:"연수구",n:"하은종합물류",a:"연수구 동춘동 913-6",q:"인천 연수구 동춘동 913-6"},
+ {only3:1,r3:2,g:"동구",n:"시립박물관",a:"주소 없음 (배송표에 미기재)",q:"인천시립박물관"},
+ {only3:1,r3:7,g:"동구",n:"우성로지스틱스 1층",time:"11:20",day:"매일",pay:"월말결제",a:"중구 서해대로180번길 32 1층",q:"인천 중구 서해대로180번길 32",note:"동화특수, 투안이네아울렛 입구로 들어오시면 우성로지스틱스 건물"},
+ {only3:1,r3:7,g:"동구",n:"우성로지스틱스 2층",time:"11:20",day:"매일",pay:"월말결제",a:"중구 서해대로180번길 32 2층",q:"인천 중구 서해대로180번길 32",note:"동화특수, 투안이네아울렛 입구로 들어오시면 우성로지스틱스 건물"},
+ {only3:1,r3:8,g:"동구",n:"용현태권도-사랑가득",time:"11:30",pay:"말일결제",a:"미추홀구 토금남로 84 제일빌딩 5층",q:"인천 미추홀구 토금남로 84"},
+ {only3:1,r3:9,g:"동구",n:"경희대멘토태권도장-당일수거",time:"11:30",pay:"말일결제",a:"미추홀구 능해길 28",q:"인천 미추홀구 능해길 28"},
+ {only3:1,r3:10,g:"동구",n:"CU편의점3층",time:"12:00",pay:"사이트결제",a:"미추홀구 인하로 77 CU편의점 3층",q:"인천 미추홀구 인하로 77"},
+ {only3:1,r3:11,g:"동구",n:"모아메디컬의원",time:"12:00",pay:"월말결제",a:"미추홀구 용현동 129-9",q:"인천 미추홀구 용현동 129-9",note:"가방 확인"},
+ {only3:1,r3:12,g:"동구",n:"인핸스태권도",time:"11:45",a:"송림로 251 창조프라자 2층",q:"인천 동구 송림로 251",note:"어제꺼 수거 · 수거 꼭 해야 합니다"},
+ {only3:1,r3:13,g:"동구",n:"대진푸드(대진식품)",time:"12:20",pay:"주말결제",a:"서구 가정로57번길 9 대진푸드",q:"인천 서구 가정로57번길 9"},
+ {only3:1,r3:14,g:"동구",n:"성모퍼스트정형외과",time:"12:20",pay:"말일결제-계좌",a:"서구 원적로 120 2층",q:"인천 서구 원적로 120",note:"가방 확인"},
+ {only3:1,r3:15,g:"동구",n:"주안퀸와이비여성의원(주안동)",time:"1:00",pay:"말일카드결제",a:"미추홀구 주안로 107 금강메디컬센터 7층",q:"인천 미추홀구 주안로 107",note:"가방 확인 · 머스터드(저) 2개\n전날꺼 수거"},
+ {only3:1,r3:18,g:"동구",n:"가온무역",pick:"동구에서 아침에 수거 / 금요일만 오후에 수거",pay:"말일계좌",a:"우리사무실 앞건물 생과방 2층"},
  {only2:1,g:"기타",n:"기사님 수거",a:""},
- {g:"기타",n:"기사님 식사",a:""}
+ {r3:19,g:"기타",n:"기사님 식사",a:""}
 ];
 
 var ua = navigator.userAgent || "";
@@ -187,10 +203,14 @@ var FILLS = [{ id: "20261109-r2", day: "20261109", data: {
 } }, { id: "20261109-r2b", day: "20261109", clear: true, data: {
   "트윈클어학원 6층~2": { "일반": 6 }, "트윈클어학원 7층~2": { "일반": 4 },
   "송도키즈스포츠단~2": { "일반": 8, "바트": 6 }, "동의당약국~2": { "_amt": 340000 }
+} }, { id: "20261110-r3", day: "20261110", data: {
+  "삼성내과~3": { "바트": 2 }, "하나태권도~3": { "양많이": 2, "샐러드": 1 }, "동의당약국~3": { "양많이": 2 }, "헤어254~3": { "일반": 2 },
+  "우성로지스틱스 1층": { "일반": 1, "스페셜": 5, "_amt": 2583400 }, "우성로지스틱스 2층": { "일반": 11 }, "용현태권도-사랑가득": { "양많이": 2 },
+  "성모퍼스트정형외과": { "일반": 8 }, "대진푸드(대진식품)": { "스페셜": 5, "_amt": 750000 }, "주안퀸와이비여성의원(주안동)": { "일반": 8, "샐러드": 2, "_amt": 740500 }, "기사님 식사~3": { "양많이": 1 }
 } }];
 /* 겹치는 업체는 루트별로 따로 저장: 루트 2에서는 이름 뒤에 ~2 를 붙여 별도 칸으로 */
 function isShared(d){ return d.no != null && d.r2 != null && !d.only2; }
-function K(nm, r){ r = r || ROUTE; var d = BYNAME[nm]; return (r === 2 && d && isShared(d)) ? nm + "~2" : nm; }
+function K(nm, r){ r = r || ROUTE; var d = BYNAME[nm]; if (!d) return nm; if (r === 2 && isShared(d)) return nm + "~2"; if (r === 3 && d.r3 != null && !d.only3) return nm + "~3"; return nm; }
 function KL(k, r){ return ((r || ROUTE) === 2 && k === "어린이") ? "어린이/기타사항" : k; }
 var BYNAME = {}; DATA.forEach(function(d){ BYNAME[d.n] = d; });
 function save(){ try { localStorage.setItem(STORE, JSON.stringify(counts)); } catch(e) {} }
@@ -245,20 +265,22 @@ function renderSum(armed){
   document.getElementById("sum").innerHTML = h;
 }
 
-var ROUTES = [{id:1,name:"남동•부평"},{id:2,name:"송도•논현"}];
+var ROUTES = [{id:1,name:"남동•부평"},{id:2,name:"송도•논현"},{id:3,name:"동구"}];
 var ROUTEKEY = "baesong-route", ROUTE = 1;
-try { var rv = parseInt(localStorage.getItem(ROUTEKEY), 10); if (rv === 1 || rv === 2) ROUTE = rv; } catch(e) {}
-function inRoute(d, r){ r = r || ROUTE; return r === 2 ? (d.r2 != null || !!d.only2) : !d.only2; }
-function numOf(d){ return ROUTE === 2 ? d.r2 : d.no; }
+try { var rv = parseInt(localStorage.getItem(ROUTEKEY), 10); if (rv === 1 || rv === 2 || rv === 3) ROUTE = rv; } catch(e) {}
+function inRoute(d, r){ r = r || ROUTE; return r === 3 ? (d.r3 != null || !!d.only3) : r === 2 ? (d.r2 != null || !!d.only2) : (!d.only2 && !d.only3); }
+function rnum(d, r){ return r === 3 ? d.r3 : r === 2 ? d.r2 : d.no; }
+function numOf(d){ return rnum(d, ROUTE); }
+function pv(d, f){ return (ROUTE === 3 && (f + "3") in d) ? d[f + "3"] : d[f]; }
 function routeName(){ return ROUTES[ROUTE - 1].name; }
 
 var SPLIT = {"한국지오인텍스연구원":["한국지오인텍스","연구원"],"연수오케이정형외과":["연수오케이","정형외과"]};
 function nameHtml(n){
   var parts = SPLIT[n];
   if (!parts && n.length > 8) {
-    var pi = n.indexOf(" ("), cut = -1;
+    var pi = n.indexOf("("), cut = -1;
     if (pi > 0) cut = pi;
-    else { var best = 99, mid = n.length / 2; for (var i = 1; i < n.length; i++) if (n.charAt(i) === " " && Math.abs(i - mid) < best) { best = Math.abs(i - mid); cut = i; } }
+    else { var best = 99, mid = n.length / 2; for (var i = 1; i < n.length; i++) if ((n.charAt(i) === " " || n.charAt(i) === "-") && Math.abs(i - mid) < best) { best = Math.abs(i - mid); cut = n.charAt(i) === "-" ? i + 1 : i; } }
     if (cut > 0) parts = [n.slice(0, cut).trim(), n.slice(cut).trim()];
   }
   return parts ? '<span class="nl">'+esc(parts[0])+'</span><span class="nl">'+esc(parts[1])+'</span>' : esc(n);
@@ -266,13 +288,15 @@ function nameHtml(n){
 function card(d){
   var h = '<article class="card"><div class="head">'+(numOf(d)?'<span class="no" aria-label="번호 '+numOf(d)+'">'+numOf(d)+'</span>':'')+'<h3 class="name">'+nameHtml(d.n)+'</h3>'+(d.q?'<a class="btn go nav" href="'+esc(appLink(d.q))+'">네이버 길안내</a>':'')+'</div>' + payBlock(d);
   var chips = [];
-  if (d.time) chips.push('<span class="chip pick">⏰ '+esc(d.time)+'</span>');
-  if (d.pick) chips.push('<span class="chip pick">'+esc(d.pick)+'</span>');
+  if (pv(d,'time')) chips.push('<span class="chip pick">⏰ '+esc(pv(d,'time'))+'</span>');
+  if (pv(d,'pick')) chips.push('<span class="chip pick">'+esc(pv(d,'pick'))+'</span>');
   if (d.day) chips.push('<span class="chip">주문 '+esc(d.day)+'</span>');
   if (d.pay) chips.push('<span class="chip">'+esc(d.pay)+'</span>');
   if (chips.length) h += '<div class="meta">'+chips.join("")+'</div>';
   h += '<p class="addr">'+esc(d.a)+'</p>';
-  if (d.note) h += '<p class="note">'+esc(d.note)+'</p>';
+  var nt = pv(d,'note');
+  if (ROUTE === 3 && d.note3 && d.note3 !== nt) nt = d.note3;
+  if (nt) h += '<p class="note">'+esc(nt)+'</p>';
   if (d.tel) h += '<p class="addr">전화 '+esc(d.tel)+'</p>';
   h += countBlock(d);
   if (!d.q) h += '<p class="none">길안내 없음</p>';
@@ -297,7 +321,7 @@ function render(){
 
 /* ---- 실시간 공유 (Firebase Realtime Database, REST) ---- */
 function ek(nm){ return encodeURIComponent(nm).replace(/\./g,"%2E"); }
-var NAMES = {}; DATA.forEach(function(d){ NAMES[ek(d.n)] = d.n; if (isShared(d)) NAMES[ek(d.n+"~2")] = d.n+"~2"; });
+var NAMES = {}; DATA.forEach(function(d){ NAMES[ek(d.n)] = d.n; if (isShared(d)) NAMES[ek(d.n+"~2")] = d.n+"~2"; if (d.r3 != null && !d.only3) NAMES[ek(d.n+"~3")] = d.n+"~3"; });
 var root = null, gotFirst = false;
 var syncEl = document.createElement("p");
 syncEl.id = "sync"; syncEl.style.cssText = "margin:6px 16px 0;font-size:12px;color:var(--muted)";
@@ -575,9 +599,9 @@ document.getElementById("ovlYes").addEventListener("click", applyScan);
 function paintRoute(){
   fillQ();
   var h = "";
-  ROUTES.forEach(function(r){ h += '<button type="button" role="tab" data-route="'+r.id+'" class="'+(r.id===ROUTE?'on':'')+'" aria-selected="'+(r.id===ROUTE?'true':'false')+'">루트 '+r.id+' · '+r.name+'</button>'; });
+  ROUTES.forEach(function(r){ h += '<button type="button" role="tab" data-route="'+r.id+'" class="'+(r.id===ROUTE?'on':'')+'" aria-selected="'+(r.id===ROUTE?'true':'false')+'"><span>루트 '+r.id+'</span><span>'+r.name+'</span></button>'; });
   document.getElementById("tabs").innerHTML = h;
-  document.querySelector("h1").className = ROUTE === 2 ? "r2" : "r1";
+  document.querySelector("h1").className = "r" + ROUTE;
   var sp = document.querySelector("h1 span"); if (sp) sp.textContent = "푸드홀릭 배송[" + routeName() + "]";
   document.title = "푸드홀릭 배송[" + routeName() + "]";
 }
@@ -607,7 +631,7 @@ function histDay(k){
     ROUTES.forEach(function(rt){
       var tot = {}, amt = 0, paid = 0, rows = "", n = 0;
       DATA.filter(function(d){ return inRoute(d, rt.id); }).sort(function(a, b){
-        var x = rt.id === 2 ? a.r2 : a.no, y = rt.id === 2 ? b.r2 : b.no;
+        var x = rnum(a, rt.id), y = rnum(b, rt.id);
         return (x == null ? 999 : x) - (y == null ? 999 : y);
       }).forEach(function(d){
         var v = c[ek(K(d.n, rt.id))]; if (!v) return;
