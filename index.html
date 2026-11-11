@@ -55,6 +55,10 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 .none{font-size:13.5px;color:var(--muted)}
 .no{flex:none;align-self:center;min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:13px;background:var(--red);color:var(--red-fg);font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
 .empty{color:var(--muted);text-align:center;padding:28px 0}
+.qshow{display:flex;flex-wrap:wrap;gap:8px}
+.qi{display:inline-flex;align-items:baseline;gap:6px;padding:8px 12px;border-radius:10px;background:var(--chip);border:1px solid var(--accent);font-size:14px}
+.qi b{font-size:20px;font-variant-numeric:tabular-nums}
+.qnone{color:var(--muted);font-size:14px;padding:6px 0}
 .cnt-t{margin:14px 0 6px;font-size:12.5px;font-weight:700;color:var(--muted)}
 .cnt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .cnt label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);min-width:0}
@@ -186,7 +190,7 @@ function webLink(q){ return "https://map.naver.com/p/search/" + encodeURICompone
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
 
 var KINDS = ["일반","양많이","특양많이","스페셜","샐러드","바트"];
-var EXTRA = ["어린이","수저국자","밥","옛날도시락"], ALLK = KINDS.concat(EXTRA);
+var EXTRA = ["어린이","초등일반","초등많이","수저국자","밥","옛날도시락"], ALLK = KINDS.concat(EXTRA);
 var LABEL = {"많이":"양많이","밑반/샐러드":"샐러드"};
 var DB = "https://baesong-5ac3f-default-rtdb.asia-southeast1.firebasedatabase.app";
 function todayKey(){ return new Date(Date.now()+9*3600*1000).toISOString().slice(0,10).replace(/-/g,""); }
@@ -250,16 +254,14 @@ function payBlock(d){
   return h;
 }
 
+function qHtml(key){
+  var cur = counts[key] || {}, parts = [];
+  ALLK.forEach(function(k){ if (cur[k]) parts.push('<span class="qi"><span>'+esc(KL(k))+'</span><b>'+cur[k]+'</b></span>'); });
+  return parts.length ? parts.join("") : '<span class="qnone">수량 없음</span>';
+}
 function countBlock(d){
-  var kk = K(d.n), cur = counts[kk] || {};
-  var h = '<p class="cnt-t">배송 수량</p><div class="cnt">';
-  ALLK.forEach(function(k){
-    var v = cur[k] || "";
-    var o = OPTS.replace('value="'+v+'"', 'value="'+v+'" selected');
-    h += '<label>'+KL(k)+'<select data-name="'+esc(kk)+'" data-kind="'+k+'" class="'+(v?'on':'')+'" aria-label="'+esc(d.n)+' '+KL(k)+' 수량">'+o+'</select></label>';
-  });
-  h += '</div>';
-  return h;
+  var kk = K(d.n);
+  return '<p class="cnt-t">배송 수량</p><div class="qshow" data-name="'+esc(kk)+'">'+qHtml(kk)+'</div>';
 }
 
 function routeNames(){ return DATA.filter(function(d){ return inRoute(d); }).map(function(d){ return K(d.n); }); }
@@ -349,6 +351,8 @@ function setSync(ok, msg){ syncEl.textContent = (ok ? "● " : "○ ") + msg; sy
 setSync(false, "연결 중…");
 
 function refreshSelects(){
+  var qs = document.querySelectorAll(".qshow");
+  for (var qi = 0; qi < qs.length; qi++) qs[qi].innerHTML = qHtml(qs[qi].getAttribute("data-name"));
   var list = document.querySelectorAll("select[data-kind]");
   for (var i = 0; i < list.length; i++) {
     var s = list[i];
