@@ -55,10 +55,6 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 .none{font-size:13.5px;color:var(--muted)}
 .no{flex:none;align-self:center;min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:13px;background:var(--red);color:var(--red-fg);font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
 .empty{color:var(--muted);text-align:center;padding:28px 0}
-.qshow{display:flex;flex-wrap:wrap;gap:8px}
-.qi{display:inline-flex;align-items:baseline;gap:6px;padding:8px 12px;border-radius:10px;background:var(--chip);border:1px solid var(--accent);font-size:14px}
-.qi b{font-size:20px;font-variant-numeric:tabular-nums}
-.qnone{color:var(--muted);font-size:14px;padding:6px 0}
 .cnt-t{margin:14px 0 6px;font-size:12.5px;font-weight:700;color:var(--muted)}
 .cnt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .cnt label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);min-width:0}
@@ -190,7 +186,7 @@ function webLink(q){ return "https://map.naver.com/p/search/" + encodeURICompone
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
 
 var KINDS = ["일반","양많이","특양많이","스페셜","샐러드","바트"];
-var EXTRA = ["어린이","초등일반","초등많이","수저국자","밥","옛날도시락"], ALLK = KINDS.concat(EXTRA);
+var EXTRA = ["어린이","수저국자","밥","옛날도시락"], ALLK = KINDS.concat(EXTRA);
 var LABEL = {"많이":"양많이","밑반/샐러드":"샐러드"};
 var DB = "https://baesong-5ac3f-default-rtdb.asia-southeast1.firebasedatabase.app";
 function todayKey(){ return new Date(Date.now()+9*3600*1000).toISOString().slice(0,10).replace(/-/g,""); }
@@ -211,6 +207,25 @@ var FILLS = [{ id: "20261109-r2", day: "20261109", data: {
   "삼성내과~3": { "바트": 2 }, "하나태권도~3": { "양많이": 2, "샐러드": 1 }, "동의당약국~3": { "양많이": 2 }, "헤어254~3": { "일반": 2 },
   "우성로지스틱스 1층": { "일반": 1, "스페셜": 5, "_amt": 2583400 }, "우성로지스틱스 2층": { "일반": 11 }, "용현태권도-사랑가득": { "양많이": 2 },
   "성모퍼스트정형외과": { "일반": 8 }, "대진푸드(대진식품)": { "스페셜": 5, "_amt": 750000 }, "주안퀸와이비여성의원(주안동)": { "일반": 8, "샐러드": 2, "_amt": 740500 }, "기사님 식사~3": { "양많이": 1 }
+} }, { id: "20261111-r1", day: "20261111", data: {
+  "연수오케이정형외과": { "스페셜": 10 }, "드림동물병원": { "양많이": 3 }, "연희동물의료센터": { "일반": 12 },
+  "해오름 아동발달클리닉 (3층)": { "스페셜": 3 }, "양지온누리약국": { "특양많이": 1 }, "클린톡스의원": { "스페셜": 7 },
+  "도림동 공사현장": { "특양많이": 6 }, "자연놀이학교 루시어린이집": { "일반": 2, "바트": 1 }, "GDS": { "일반": 2 },
+  "인천발달장애인": { "_memo": "휴무" }, "더베스트정형외과": { "일반": 9, "양많이": 8 },
+  "족발집": { "_memo": "반찬 보온가방 배송(3인분)" }, "slp 어학원": { "바트": 1, "_memo": "국통 1" }, "기사님 식사": { "일반": 1 }
+} }, { id: "20261111-r2", day: "20261111", data: {
+  "트윈클어학원 6층~2": { "일반": 6, "어린이": 31, "_memo": "11개 양많이, 계란알러지" },
+  "트윈클어학원 7층~2": { "일반": 4, "어린이": 10, "_memo": "1개 양많이, 조개·게 알러지" },
+  "송도키즈스포츠단~2": { "일반": 8, "바트": 6, "수저국자": 1, "밥": 6 },
+  "유니미니": { "일반": 11 }, "와이오토컴퍼니": { "일반": 2, "양많이": 2, "샐러드": 1, "_memo": "튜나샌(저) 1개" },
+  "조남철강": { "양많이": 5 }, "태성물류": { "양많이": 8 }, "기사님 수거": { "양많이": 1 }, "자윤한의원": { "_memo": "휴무" }
+} }, { id: "20261111-r3", day: "20261111", data: {
+  "한국지오인텍스연구원~3": { "일반": 6 }, "삼성내과~3": { "바트": 2 },
+  "하나태권도~3": { "양많이": 2, "샐러드": 1, "_memo": "불고기(표) 1개" }, "동의당약국~3": { "양많이": 2 }, "헤어254~3": { "일반": 2 },
+  "우성로지스틱스 1층": { "일반": 2, "스페셜": 4 }, "우성로지스틱스 2층": { "일반": 11 }, "용현태권도-사랑가득": { "양많이": 2 },
+  "대진푸드(대진식품)": { "스페셜": 5 }, "성모퍼스트정형외과": { "일반": 7 },
+  "주안퀸와이비여성의원(주안동)": { "일반": 5, "샐러드": 1, "_memo": "불고기비빔(저) 1개, 전날꺼 수거" },
+  "기사님 식사~3": { "양많이": 1 }, "가온무역": { "일반": 7 }
 } }];
 /* 겹치는 업체는 루트별로 따로 저장: 루트 2에서는 이름 뒤에 ~2 를 붙여 별도 칸으로 */
 function isShared(d){ return d.no != null && d.r2 != null && !d.only2; }
@@ -235,14 +250,16 @@ function payBlock(d){
   return h;
 }
 
-function qHtml(key){
-  var cur = counts[key] || {}, parts = [];
-  ALLK.forEach(function(k){ if (cur[k]) parts.push('<span class="qi"><span>'+esc(KL(k))+'</span><b>'+cur[k]+'</b></span>'); });
-  return parts.length ? parts.join("") : '<span class="qnone">수량 없음</span>';
-}
 function countBlock(d){
-  var kk = K(d.n);
-  return '<p class="cnt-t">배송 수량</p><div class="qshow" data-name="'+esc(kk)+'">'+qHtml(kk)+'</div>';
+  var kk = K(d.n), cur = counts[kk] || {};
+  var h = '<p class="cnt-t">배송 수량</p><div class="cnt">';
+  ALLK.forEach(function(k){
+    var v = cur[k] || "";
+    var o = OPTS.replace('value="'+v+'"', 'value="'+v+'" selected');
+    h += '<label>'+KL(k)+'<select data-name="'+esc(kk)+'" data-kind="'+k+'" class="'+(v?'on':'')+'" aria-label="'+esc(d.n)+' '+KL(k)+' 수량">'+o+'</select></label>';
+  });
+  h += '</div>';
+  return h;
 }
 
 function routeNames(){ return DATA.filter(function(d){ return inRoute(d); }).map(function(d){ return K(d.n); }); }
@@ -332,8 +349,6 @@ function setSync(ok, msg){ syncEl.textContent = (ok ? "● " : "○ ") + msg; sy
 setSync(false, "연결 중…");
 
 function refreshSelects(){
-  var qs = document.querySelectorAll(".qshow");
-  for (var qi = 0; qi < qs.length; qi++) qs[qi].innerHTML = qHtml(qs[qi].getAttribute("data-name"));
   var list = document.querySelectorAll("select[data-kind]");
   for (var i = 0; i < list.length; i++) {
     var s = list[i];
