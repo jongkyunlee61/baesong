@@ -56,6 +56,9 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 .no{flex:none;align-self:center;min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:13px;background:var(--red);color:var(--red-fg);font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
 .empty{color:var(--muted);text-align:center;padding:28px 0}
 .tm{display:block;font-size:12px;font-weight:500;line-height:1.1;margin-top:2px;opacity:.9;font-variant-numeric:tabular-nums}
+.locst{margin:6px 16px 0;font-size:12.5px;color:var(--muted)}
+.locst.bad{color:var(--red);font-weight:700}
+#locBtn.on{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
 .qshow{display:flex;flex-wrap:wrap;gap:8px}
 .qi{display:inline-flex;align-items:baseline;gap:6px;padding:8px 12px;border-radius:10px;background:var(--chip);border:1px solid var(--accent);font-size:14px}
 .qi b{font-size:20px;font-variant-numeric:tabular-nums}
@@ -124,6 +127,8 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 <div class="scan"><button type="button" id="scanBtn">📷 카메라로 촬영</button><button type="button" id="scanAlbum">🖼 앨범에서 선택</button><input type="file" id="scanFile" accept="image/*" capture="environment" hidden><input type="file" id="scanFileAlbum" accept="image/*" hidden></div>
 <div class="ovl" id="ovl" hidden><div class="box" role="dialog" aria-modal="true" aria-label="읽은 수량 확인"><div id="ovlBody"></div><div class="ovl-acts"><button type="button" id="ovlNo">취소</button><button type="button" id="ovlYes" class="go2">적용</button></div></div></div>
 <div class="hbar"><button type="button" id="histBtn">📅 지난 기록 보기</button></div>
+<div class="hbar"><button type="button" id="locBtn">📍 내 위치 공유 시작</button></div>
+<p id="locSt" class="locst" hidden></p>
 <div class="ovl" id="hist" hidden><div class="box" role="dialog" aria-modal="true" aria-label="지난 기록"><div id="histBody"></div><div class="ovl-acts one"><button type="button" id="histBack" hidden>← 날짜 목록</button><button type="button" id="histClose" class="go2">닫기</button></div></div></div>
 <main id="app"></main>
 
@@ -445,8 +450,10 @@ function applyFills(){
 function onStream(ev){
   var m; try { m = JSON.parse(ev.data); } catch(e) { return; }
   if (!m) return;
+  var onlyLoc = m.path && m.path.indexOf("/loc") === 0;
   if (ev.type === "put") setPath(m.path, m.data);
   else if (ev.type === "patch") Object.keys(m.data || {}).forEach(function(k){ setPath((m.path === "/" ? "" : m.path) + "/" + k, m.data[k]); });
+  if (onlyLoc && gotFirst) return;
   if (!gotFirst) { gotFirst = true; if (root === null || !root.seeded) seedRemote(); applyFills(); }
   applyRemote();
   setSync(true, "실시간 공유 중 · 다른 폰의 변경이 바로 반영됩니다");
@@ -687,6 +694,44 @@ histBack.addEventListener("click", histList);
 histEl.addEventListener("click", function(ev){ if (ev.target === histEl) histEl.hidden = true; var b = ev.target.closest("button[data-day]"); if (b) histDay(b.getAttribute("data-day")); });
 paintRoute();
 render();
+
+/* ---- 내 위치 실시간 공유 (GPS) ---- */
+var locWatch = null, locRoute = 0, locLast = 0, wakeLock = null;
+var locBtn = document.getElementById("locBtn"), locSt = document.getElementById("locSt");
+function locMsg(t, bad){ locSt.hidden = !t; locSt.textContent = t || ""; locSt.className = "locst" + (bad ? " bad" : ""); }
+function locPut(o){
+  var url = BASE + "/loc/" + locRoute + ".json";
+  (o ? fetch(url, { method: "PUT", body: JSON.stringify(o) }) : fetch(url, { method: "DELETE" })).catch(function(){});
+}
+function getWake(){
+  try { if (navigator.wakeLock && locWatch !== null) navigator.wakeLock.request("screen").then(function(w){ wakeLock = w; }).catch(function(){}); } catch(e) {}
+}
+document.addEventListener("visibilitychange", function(){ if (document.visibilityState === "visible") getWake(); });
+function locStop(){
+  if (locWatch !== null) { try { navigator.geolocation.clearWatch(locWatch); } catch(e) {} locWatch = null; }
+  try { if (wakeLock) wakeLock.release(); } catch(e) {} wakeLock = null;
+  if (locRoute) locPut(null);
+  locBtn.textContent = "📍 내 위치 공유 시작"; locBtn.classList.remove("on"); locMsg("");
+}
+function locStart(){
+  if (!navigator.geolocation) { locMsg("이 브라우저는 위치(GPS)를 지원하지 않습니다.", true); return; }
+  locRoute = ROUTE; locLast = 0;
+  locBtn.textContent = "■ 위치 공유 중지 (루트 " + locRoute + ")"; locBtn.classList.add("on");
+  locMsg("위치를 찾는 중… 허용 창이 뜨면 '허용'을 눌러주세요. 공유하는 동안 화면을 켜 두세요.");
+  locWatch = navigator.geolocation.watchPosition(function(pos){
+    var now = Date.now(); if (now - locLast < 8000) return; locLast = now;
+    var c = pos.coords;
+    locPut({ lat: +c.latitude.toFixed(6), lng: +c.longitude.toFixed(6), acc: Math.round(c.accuracy || 0), spd: c.speed != null ? Math.round(c.speed * 3.6) : null, t: now });
+    locMsg("● 루트 " + locRoute + " 위치 공유 중 · 마지막 전송 " + hm(now) + " · 정확도 약 " + Math.round(c.accuracy || 0) + "m");
+  }, function(err){
+    var m = err.code === 1 ? "위치 권한이 거부되었습니다. 휴대폰 설정에서 이 사이트의 위치를 허용해 주세요." : err.code === 3 ? "위치를 찾지 못했습니다. 하늘이 보이는 곳에서 다시 시도해 주세요." : "위치를 가져오지 못했습니다.";
+    if (err.code === 1) locStop();
+    locMsg(m, true);
+  }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
+  getWake();
+}
+locBtn.addEventListener("click", function(){ if (locWatch !== null) locStop(); else locStart(); });
+window.addEventListener("pagehide", function(){ if (locWatch !== null) locPut(null); });
 startSync();
 </script>
 </body></html>
