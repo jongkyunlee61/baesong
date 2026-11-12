@@ -56,6 +56,11 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 .no{flex:none;align-self:center;min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:13px;background:var(--red);color:var(--red-fg);font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
 .empty{color:var(--muted);text-align:center;padding:28px 0}
 .tm{display:block;font-size:12px;font-weight:500;line-height:1.1;margin-top:2px;opacity:.9;font-variant-numeric:tabular-nums}
+.otherloc{margin:8px 16px 0;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line)}
+.ol{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0}
+.ol+.ol{border-top:1px solid var(--line)}
+.olb{display:flex;gap:6px;flex:none}
+.olb .btn{min-height:38px;padding:7px 10px;font-size:13px;white-space:nowrap}
 .locst{margin:6px 16px 0;font-size:12.5px;color:var(--muted)}
 .locst.bad{color:var(--red);font-weight:700}
 #locBtn.on{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
@@ -129,6 +134,7 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 <div class="hbar"><button type="button" id="histBtn">📅 지난 기록 보기</button></div>
 <div class="hbar"><button type="button" id="locBtn">📍 내 위치 공유 시작</button></div>
 <p id="locSt" class="locst" hidden></p>
+<div id="otherLoc" class="otherloc" hidden></div>
 <div class="ovl" id="hist" hidden><div class="box" role="dialog" aria-modal="true" aria-label="지난 기록"><div id="histBody"></div><div class="ovl-acts one"><button type="button" id="histBack" hidden>← 날짜 목록</button><button type="button" id="histClose" class="go2">닫기</button></div></div></div>
 <main id="app"></main>
 
@@ -453,9 +459,9 @@ function onStream(ev){
   var onlyLoc = m.path && m.path.indexOf("/loc") === 0;
   if (ev.type === "put") setPath(m.path, m.data);
   else if (ev.type === "patch") Object.keys(m.data || {}).forEach(function(k){ setPath((m.path === "/" ? "" : m.path) + "/" + k, m.data[k]); });
-  if (onlyLoc && gotFirst) return;
+  if (onlyLoc && gotFirst) { paintOtherLoc(); return; }
   if (!gotFirst) { gotFirst = true; if (root === null || !root.seeded) seedRemote(); applyFills(); }
-  applyRemote();
+  applyRemote(); paintOtherLoc();
   setSync(true, "실시간 공유 중 · 다른 폰의 변경이 바로 반영됩니다");
 }
 function startSync(){
@@ -732,6 +738,26 @@ function locStart(){
 }
 locBtn.addEventListener("click", function(){ if (locWatch !== null) locStop(); else locStart(); });
 window.addEventListener("pagehide", function(){ if (locWatch !== null) locPut(null); });
+
+/* ---- 다른 기사님 위치 보기 ---- */
+function locAgo(t){ var s = Math.max(0, Math.round((Date.now() - t) / 1000)); return s < 60 ? s + "초 전" : s < 3600 ? Math.round(s / 60) + "분 전" : Math.round(s / 3600) + "시간 전"; }
+function placeLink(lat, lng, name){
+  var n = encodeURIComponent(name);
+  if (isAndroid) return "intent://place?lat=" + lat + "&lng=" + lng + "&name=" + n + "&appname=" + APPNAME +
+    "#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;end";
+  return "nmap://place?lat=" + lat + "&lng=" + lng + "&name=" + n + "&appname=" + APPNAME;
+}
+function paintOtherLoc(){
+  var el = document.getElementById("otherLoc"), l = (root && root.loc) || {}, h = "";
+  Object.keys(l).sort().forEach(function(r){
+    var v = l[r]; if (!v || !v.lat || +r === (locWatch !== null ? locRoute : -1)) return;
+    var nm = ((ROUTES[r-1] || {}).name) || "", old = Date.now() - v.t > 120000;
+    h += '<div class="ol"><div><b>루트 '+r+(nm ? ' · '+esc(nm) : '')+' 기사님</b><br><small style="color:'+(old ? 'var(--red)' : 'var(--accent)')+'">'+(old ? '○ 신호 없음 · ' : '● ')+locAgo(v.t)+(v.spd != null ? ' · '+v.spd+'km/h' : '')+'</small></div>'
+      + '<span class="olb"><a class="btn go" href="'+esc(placeLink(v.lat, v.lng, "루트 "+r+" 기사님"))+'">네이버지도</a><a class="btn sub" target="_blank" rel="noopener" href="https://www.google.com/maps?q='+v.lat+','+v.lng+'">구글지도</a></span></div>';
+  });
+  el.hidden = !h; el.innerHTML = h ? '<p class="cnt-t" style="margin:0 0 6px">📍 다른 기사님 위치</p>' + h : "";
+}
+setInterval(function(){ try { paintOtherLoc(); } catch(e) {} }, 15000);
 startSync();
 </script>
 </body></html>
