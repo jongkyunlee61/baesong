@@ -55,6 +55,7 @@ h2{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font
 .none{font-size:13.5px;color:var(--muted)}
 .no{flex:none;align-self:center;min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:13px;background:var(--red);color:var(--red-fg);font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
 .empty{color:var(--muted);text-align:center;padding:28px 0}
+.tm{display:block;font-size:12px;font-weight:500;line-height:1.1;margin-top:2px;opacity:.9;font-variant-numeric:tabular-nums}
 .qshow{display:flex;flex-wrap:wrap;gap:8px}
 .qi{display:inline-flex;align-items:baseline;gap:6px;padding:8px 12px;border-radius:10px;background:var(--chip);border:1px solid var(--accent);font-size:14px}
 .qi b{font-size:20px;font-variant-numeric:tabular-nums}
@@ -243,17 +244,19 @@ for (var n = 1; n <= 50; n++) OPTS += '<option value="'+n+'">'+n+'</option>';
 function actBlock(d){
   var kk = K(d.n), cur = counts[kk] || {}, h = '';
   h += '<div class="memo"><span>미결재/비고</span><input type="text" class="memoin'+(cur._memo?' on':'')+'" data-name="'+esc(kk)+'" value="'+esc(cur._memo||'')+'" placeholder="직접 입력" maxlength="200" aria-label="'+esc(d.n)+' 미결재/비고"></div>';
-  h += '<div class="pk" role="group" aria-label="배송·수거 여부"><button type="button" data-dl="1" data-name="'+esc(kk)+'" class="'+(cur._dl?'ondl':'')+'" aria-pressed="'+(cur._dl?'true':'false')+'">배송완료</button><button type="button" data-pk="1" data-name="'+esc(kk)+'" class="'+(cur._pk===1?'on1':'')+'">수거완료</button><button type="button" data-pk="2" data-name="'+esc(kk)+'" class="'+(cur._pk===2?'on2':'')+'">미수거</button></div>';
+  h += '<div class="pk" role="group" aria-label="배송·수거 여부"><button type="button" data-dl="1" data-name="'+esc(kk)+'" class="'+(cur._dl?'ondl':'')+'" aria-pressed="'+(cur._dl?'true':'false')+'">배송완료'+(cur._dl?tm(cur._dlt):'')+'</button><button type="button" data-pk="1" data-name="'+esc(kk)+'" class="'+(cur._pk===1?'on1':'')+'">수거완료'+(cur._pk===1?tm(cur._pkt):'')+'</button><button type="button" data-pk="2" data-name="'+esc(kk)+'" class="'+(cur._pk===2?'on2':'')+'">미수거'+(cur._pk===2?tm(cur._pkt):'')+'</button></div>';
   return h;
 }
 function payBlock(d){
   var kk = K(d.n), cur = counts[kk] || {};
   var a = cur._amt ? String(cur._amt).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
-  var h = '<div class="pay"><span>결제금액</span><input type="text" inputmode="numeric" class="amt'+(a?' on':'')+'" data-name="'+esc(kk)+'" value="'+a+'" placeholder="0" aria-label="'+esc(d.n)+' 결제금액"><em>원</em><button type="button" class="paid'+(cur._paid?' on':'')+'" data-paid="1" data-name="'+esc(kk)+'" aria-pressed="'+(cur._paid?'true':'false')+'">결제완료</button></div>';
+  var h = '<div class="pay"><span>결제금액</span><input type="text" inputmode="numeric" class="amt'+(a?' on':'')+'" data-name="'+esc(kk)+'" value="'+a+'" placeholder="0" aria-label="'+esc(d.n)+' 결제금액"><em>원</em><button type="button" class="paid'+(cur._paid?' on':'')+'" data-paid="1" data-name="'+esc(kk)+'" aria-pressed="'+(cur._paid?'true':'false')+'">결제완료'+(cur._paid?tm(cur._pdt):'')+'</button></div>';
   h += actBlock(d);
   return h;
 }
 
+function hm(ms){ return ms ? new Date(+ms + 9*3600*1000).toISOString().slice(11,16) : ""; }
+function tm(ms){ return ms ? '<span class="tm">'+hm(ms)+'</span>' : ''; }
 function qHtml(key){
   var cur = counts[key] || {}, parts = [];
   ALLK.forEach(function(k){ if (cur[k]) parts.push('<span class="qi"><span>'+esc(KL(k))+'</span><b>'+cur[k]+'</b></span>'); });
@@ -376,25 +379,28 @@ function refreshSelects(){
   }
   var pb = document.querySelectorAll("button[data-paid]");
   for (var q2 = 0; q2 < pb.length; q2++) {
-    var on = !!(counts[pb[q2].getAttribute("data-name")] || {})._paid;
+    var pc = counts[pb[q2].getAttribute("data-name")] || {}, on = !!pc._paid;
     pb[q2].className = "paid" + (on ? " on" : ""); pb[q2].setAttribute("aria-pressed", on ? "true" : "false");
+    pb[q2].innerHTML = "결제완료" + (on ? tm(pc._pdt) : "");
   }
   var db = document.querySelectorAll("button[data-dl]");
   for (var q3 = 0; q3 < db.length; q3++) {
-    var don = !!(counts[db[q3].getAttribute("data-name")] || {})._dl;
+    var dc = counts[db[q3].getAttribute("data-name")] || {}, don = !!dc._dl;
     db[q3].className = don ? "ondl" : ""; db[q3].setAttribute("aria-pressed", don ? "true" : "false");
+    db[q3].innerHTML = "배송완료" + (don ? tm(dc._dlt) : "");
   }
   var bt = document.querySelectorAll("button[data-pk]");
   for (var m = 0; m < bt.length; m++) {
-    var b = bt[m], pk = (counts[b.getAttribute("data-name")] || {})._pk || 0, w = +b.getAttribute("data-pk");
+    var b = bt[m], kc = counts[b.getAttribute("data-name")] || {}, pk = kc._pk || 0, w = +b.getAttribute("data-pk");
     b.className = pk === w ? "on" + w : "";
+    b.innerHTML = (w === 1 ? "수거완료" : "미수거") + (pk === w ? tm(kc._pkt) : "");
   }
 }
 function applyRemote(){
   var rc = (root && root.counts) || {}, c = {};
   Object.keys(rc).forEach(function(k){
     var nm = NAMES[k]; if (!nm || !rc[k]) return;
-    var o = {}; ALLK.concat(['_amt','_pk','_paid','_dl']).forEach(function(kd){ var n = +rc[k][kd]; if (n) o[kd] = n; });
+    var o = {}; ALLK.concat(['_amt','_pk','_paid','_dl','_dlt','_pdt','_pkt']).forEach(function(kd){ var n = +rc[k][kd]; if (n) o[kd] = n; });
     if (typeof rc[k]._memo === 'string' && rc[k]._memo) o._memo = rc[k]._memo;
     if (Object.keys(o).length) c[nm] = o;
   });
@@ -502,9 +508,10 @@ document.getElementById("app").addEventListener("click", function(ev){
     var dn = dlb.getAttribute("data-name");
     counts[dn] = counts[dn] || {};
     var dv = counts[dn]._dl ? 0 : 1;
-    if (dv) counts[dn]._dl = 1; else delete counts[dn]._dl;
+    var nowT = Date.now();
+    if (dv) { counts[dn]._dl = 1; counts[dn]._dlt = nowT; } else { delete counts[dn]._dl; delete counts[dn]._dlt; }
     if (!Object.keys(counts[dn]).length) delete counts[dn];
-    save(); refreshSelects(); renderSum(false); push(dn, "_dl", dv);
+    save(); refreshSelects(); renderSum(false); push(dn, "_dl", dv); push(dn, "_dlt", dv ? nowT : 0);
     return;
   }
   var pdb = ev.target.closest("button[data-paid]");
@@ -512,18 +519,20 @@ document.getElementById("app").addEventListener("click", function(ev){
     var pn = pdb.getAttribute("data-name");
     counts[pn] = counts[pn] || {};
     var pv = counts[pn]._paid ? 0 : 1;
-    if (pv) counts[pn]._paid = 1; else delete counts[pn]._paid;
+    var nowP = Date.now();
+    if (pv) { counts[pn]._paid = 1; counts[pn]._pdt = nowP; } else { delete counts[pn]._paid; delete counts[pn]._pdt; }
     if (!Object.keys(counts[pn]).length) delete counts[pn];
-    save(); refreshSelects(); renderSum(false); push(pn, "_paid", pv);
+    save(); refreshSelects(); renderSum(false); push(pn, "_paid", pv); push(pn, "_pdt", pv ? nowP : 0);
     return;
   }
   var b = ev.target.closest("button[data-pk]"); if (!b) return;
   var nm = b.getAttribute("data-name"), w = +b.getAttribute("data-pk");
   counts[nm] = counts[nm] || {};
   var nv = counts[nm]._pk === w ? 0 : w;
-  if (nv) counts[nm]._pk = nv; else delete counts[nm]._pk;
+  var nowK = Date.now();
+  if (nv) { counts[nm]._pk = nv; counts[nm]._pkt = nowK; } else { delete counts[nm]._pk; delete counts[nm]._pkt; }
   if (!Object.keys(counts[nm]).length) delete counts[nm];
-  save(); refreshSelects(); renderSum(false); push(nm, "_pk", nv);
+  save(); refreshSelects(); renderSum(false); push(nm, "_pk", nv); push(nm, "_pkt", nv ? nowK : 0);
 });
 var armed = false, armTimer = null;
 document.getElementById("sum").addEventListener("click", function(ev){
@@ -592,7 +601,7 @@ function applyScan(){
   if (!scanResult) return;
   var next = {};
   var mine = {}; routeNames().forEach(function(k){ mine[k] = 1; });
-  Object.keys(counts).forEach(function(nm){ if (!mine[nm]) { next[nm] = counts[nm]; return; } var c = counts[nm]; var o = {}; if (c._amt) o._amt = c._amt; if (c._pk) o._pk = c._pk; if (c._paid) o._paid = c._paid; if (c._dl) o._dl = c._dl; if (c._memo) o._memo = c._memo; EXTRA.forEach(function(k){ if (c[k]) o[k] = c[k]; }); if (Object.keys(o).length) next[nm] = o; });
+  Object.keys(counts).forEach(function(nm){ if (!mine[nm]) { next[nm] = counts[nm]; return; } var c = counts[nm]; var o = {}; if (c._amt) o._amt = c._amt; if (c._pk) o._pk = c._pk; if (c._paid) o._paid = c._paid; if (c._dl) o._dl = c._dl; if (c._dlt) o._dlt = c._dlt; if (c._pdt) o._pdt = c._pdt; if (c._pkt) o._pkt = c._pkt; if (c._memo) o._memo = c._memo; EXTRA.forEach(function(k){ if (c[k]) o[k] = c[k]; }); if (Object.keys(o).length) next[nm] = o; });
   scanResult.forEach(function(x){
     ALLK.forEach(function(k){ var n = Math.round(+x[k] || 0); if (n > 0 && n <= 50) { var kx = K(x.name); next[kx] = next[kx] || {}; next[kx][k] = n; } });
     var am = Math.round(+x["금액"] || 0); if (am > 0 && am < 100000000) { var ka = K(x.name); next[ka] = next[ka] || {}; next[ka]._amt = am; }
@@ -663,7 +672,7 @@ function histDay(k){
         var a = +v._amt || 0; if (a) { has = true; amt += a; if (v._paid) paid += a; }
         if (!has && !v._pk && !v._dl && !v._memo) return;
         n++;
-        var st = []; if (v._dl) st.push("배송완료"); if (v._paid) st.push("결제완료"); if (v._pk === 1) st.push("수거완료"); if (v._pk === 2) st.push("미수거");
+        var st = []; if (v._dl) st.push("배송완료" + (v._dlt ? " " + hm(v._dlt) : "")); if (v._paid) st.push("결제완료" + (v._pdt ? " " + hm(v._pdt) : "")); if (v._pk === 1) st.push("수거완료" + (v._pkt ? " " + hm(v._pkt) : "")); if (v._pk === 2) st.push("미수거" + (v._pkt ? " " + hm(v._pkt) : ""));
         rows += "<li><span>"+esc(d.n)+"<small>"+(q.join(" · ")||"수량 없음")+(st.length?" · "+st.join(" · "):"")+(v._memo?"<br>미결재/비고: "+esc(v._memo):"")+"</small></span><b>"+(a?won(a):"")+"</b></li>";
       });
       var ts = ALLK.filter(function(kd){ return tot[kd]; }).map(function(kd){ return KL(kd, rt.id)+" "+tot[kd]; }).join(" · ") || "수량 없음";
